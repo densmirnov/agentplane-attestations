@@ -138,7 +138,7 @@ Generated files land in `artifacts/`:
 6. Explain that the same attestation core works through a built-in `agentplane` adapter today and through third-party adapters later.
 
 A concise walkthrough is available in [docs/demo-script.md](/Users/densmirnov/Desktop/synthesis-hackathon/docs/demo-script.md).
-A submission-ready evidence pack is available in [SUBMISSION.md](/Users/densmirnov/Desktop/synthesis-hackathon/SUBMISSION.md) and [docs/conversation-log.md](/Users/densmirnov/Desktop/synthesis-hackathon/docs/conversation-log.md).
+A submission-ready evidence pack is available in [SUBMISSION.md](/Users/densmirnov/Desktop/synthesis-hackathon/SUBMISSION.md), [DEVFOLIO.md](/Users/densmirnov/Desktop/synthesis-hackathon/DEVFOLIO.md), and [docs/conversation-log.md](/Users/densmirnov/Desktop/synthesis-hackathon/docs/conversation-log.md).
 
 To snapshot the final hackathon pack into one reproducible directory with a manifest and file hashes, run:
 

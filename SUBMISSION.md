@@ -94,6 +94,7 @@ Important boundary:
 - Rejected report: `artifacts/rejected-report.html`
 - Trusted attestation JSON: `artifacts/trusted-attestation.json`
 - Trusted anchor receipt: `artifacts/trusted-anchor.json`
+- Devfolio field-ready copy: `DEVFOLIO.md`
 - Demo walkthrough: `docs/demo-script.md`
 - Conversation evidence map: `docs/conversation-log.md`
 
