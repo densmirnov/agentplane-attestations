@@ -1,7 +1,8 @@
 ---
 id: "202603131341-YNE1V9"
 title: "Add attestation-specific Base anchor flow"
-status: "DOING"
+result_summary: "Added attestation-specific Base anchor receipts with deterministic digest payloads, optional viem-powered live submission, report linkage, and fail-closed signer guardrails."
+status: "DONE"
 priority: "med"
 owner: "CODER"
 depends_on: []
@@ -18,11 +19,16 @@ verification:
   updated_at: "2026-03-13T14:16:19.491Z"
   updated_by: "CODER"
   note: "Command: npm test | Result: pass | Evidence: 12 tests passed including anchor flow coverage. Scope: attestation core and Base anchor helpers. Command: npm run demo | Result: pass | Evidence: generated passing and failing demo artifacts plus passing-anchor.json. Scope: integrated demo path. Command: node src/cli.mjs anchor --input artifacts/passing-attestation.json --output artifacts/passing-anchor.json | Result: pass | Evidence: wrote deterministic prepared anchor receipt for the passing attestation. Scope: attestation-specific digest anchor generation. Command: node src/cli.mjs render --input artifacts/passing-attestation.json --anchor artifacts/passing-anchor.json --output artifacts/passing-report.html | Result: pass | Evidence: report rendered with explicit digest-only on-chain disclaimer. Scope: report linkage. Command: node src/cli.mjs anchor --input artifacts/passing-attestation.json --output artifacts/passing-anchor-submit.json --submit | Result: fail | Evidence: exited with BASE_PRIVATE_KEY required error, proving fail-closed live submit behavior. Scope: signer-secret guardrail. Command: agentplane doctor | Result: pass | Evidence: ok true with findings 0. Scope: workflow health. Command: node .agentplane/policy/check-routing.mjs | Result: pass | Evidence: policy routing OK. Scope: policy validation."
-commit: null
+commit:
+  hash: "fe1d3bbc7edb80afceeddd75e23144405406c297"
+  message: "✨ attestations: add Base anchor flow"
 comments:
   -
     author: "CODER"
     body: "Start: implementing attestation-specific Base anchor flow with deterministic digest/payload generation, optional live write when signer env is present, report linkage, tests, and docs updates."
+  -
+    author: "CODER"
+    body: "Verified: shipped deterministic Base anchor sidecar flow, optional live submit path, report linkage, docs, and tests; live write remains fail-closed until BASE_PRIVATE_KEY is configured."
 events:
   -
     type: "status"
@@ -37,8 +43,15 @@ events:
     author: "CODER"
     state: "ok"
     note: "Command: npm test | Result: pass | Evidence: 12 tests passed including anchor flow coverage. Scope: attestation core and Base anchor helpers. Command: npm run demo | Result: pass | Evidence: generated passing and failing demo artifacts plus passing-anchor.json. Scope: integrated demo path. Command: node src/cli.mjs anchor --input artifacts/passing-attestation.json --output artifacts/passing-anchor.json | Result: pass | Evidence: wrote deterministic prepared anchor receipt for the passing attestation. Scope: attestation-specific digest anchor generation. Command: node src/cli.mjs render --input artifacts/passing-attestation.json --anchor artifacts/passing-anchor.json --output artifacts/passing-report.html | Result: pass | Evidence: report rendered with explicit digest-only on-chain disclaimer. Scope: report linkage. Command: node src/cli.mjs anchor --input artifacts/passing-attestation.json --output artifacts/passing-anchor-submit.json --submit | Result: fail | Evidence: exited with BASE_PRIVATE_KEY required error, proving fail-closed live submit behavior. Scope: signer-secret guardrail. Command: agentplane doctor | Result: pass | Evidence: ok true with findings 0. Scope: workflow health. Command: node .agentplane/policy/check-routing.mjs | Result: pass | Evidence: policy routing OK. Scope: policy validation."
+  -
+    type: "status"
+    at: "2026-03-13T14:17:02.538Z"
+    author: "CODER"
+    from: "DOING"
+    to: "DONE"
+    note: "Verified: shipped deterministic Base anchor sidecar flow, optional live submit path, report linkage, docs, and tests; live write remains fail-closed until BASE_PRIVATE_KEY is configured."
 doc_version: 3
-doc_updated_at: "2026-03-13T14:16:19.492Z"
+doc_updated_at: "2026-03-13T14:17:02.539Z"
 doc_updated_by: "CODER"
 description: "Implement deterministic attestation digest anchoring with optional live Base write, report linkage, and docs without overstating on-chain coverage."
 id_source: "generated"
