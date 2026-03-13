@@ -1,7 +1,8 @@
 ---
 id: "202603131309-KCZ0GN"
 title: "Harden trust semantics for universal approval evidence"
-status: "DOING"
+result_summary: "Hardened universal approval trust semantics across normalization, policy, extractor behavior, tests, and canonical docs without changing the top-level artifact bundle schema."
+status: "DONE"
 priority: "med"
 owner: "CODER"
 depends_on: []
@@ -18,11 +19,16 @@ verification:
   updated_at: "2026-03-13T13:17:42.296Z"
   updated_by: "CODER"
   note: "Approval semantics are now normalized as explicit observed decisions, the trust engine no longer depends on a hidden human-only approval bucket, and real task plus fixture paths remain trusted or rejected as expected."
-commit: null
+commit:
+  hash: "025b31c310aceba2bbf2fe15bf7587b4c90cebb6"
+  message: "✨ KCZ0GN task: harden universal approval trust semantics"
 comments:
   -
     author: "CODER"
     body: "Start: harden approval semantics across normalization, policy, extractor, and tests so trust no longer depends on a hidden human-only approval assumption."
+  -
+    author: "CODER"
+    body: "Verified: approval evidence is now normalized as explicit observed decisions, the trust engine no longer depends on a hidden human-only approval bucket, and real-task plus fixture paths remain compatible."
 events:
   -
     type: "status"
@@ -37,8 +43,15 @@ events:
     author: "CODER"
     state: "ok"
     note: "Approval semantics are now normalized as explicit observed decisions, the trust engine no longer depends on a hidden human-only approval bucket, and real task plus fixture paths remain trusted or rejected as expected."
+  -
+    type: "status"
+    at: "2026-03-13T13:18:17.200Z"
+    author: "CODER"
+    from: "DOING"
+    to: "DONE"
+    note: "Verified: approval evidence is now normalized as explicit observed decisions, the trust engine no longer depends on a hidden human-only approval bucket, and real-task plus fixture paths remain compatible."
 doc_version: 3
-doc_updated_at: "2026-03-13T13:17:42.298Z"
+doc_updated_at: "2026-03-13T13:18:17.201Z"
 doc_updated_by: "CODER"
 description: "Implement Epic 1 by replacing the human-only approval assumption with a universal approval decision model across normalized evidence, trust policy, extractor behavior, tests, and docs."
 id_source: "generated"
