@@ -1,5 +1,12 @@
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import {
+  copyFileSync,
+  mkdirSync,
+  readFileSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
+import { execFileSync } from "node:child_process";
+import { dirname, relative, resolve } from "node:path";
 import { getRuntimeAdapter, listRuntimeAdapters } from "./adapters/index.mjs";
 import { resolveAgentplaneProfile } from "./lib/agentplane-profile.mjs";
 import { extractAgentplaneTaskSnapshot } from "./lib/agentplane-task-extractor.mjs";
@@ -10,10 +17,19 @@ import {
 import { createAttestation, verifyAttestation } from "./lib/attestation.mjs";
 import { ensureAvatarPng } from "./lib/avatar.mjs";
 import { canonicalStringify } from "./lib/canonical-json.mjs";
+import { sha256Hex } from "./lib/hash.mjs";
 import { buildDemoIndex, renderAttestationReport } from "./lib/report.mjs";
 import { adaptRuntimeSnapshot } from "./lib/runtime-adapter.mjs";
 
 const DEFAULT_DEMO_TRUSTED_TASK_ID = "202603131341-YNE1V9";
+const DEFAULT_FREEZE_OUTPUT_DIR = "artifacts/freeze";
+const FREEZE_DOCS = [
+  "README.md",
+  "SUBMISSION.md",
+  "docs/conversation-log.md",
+  "docs/demo-script.md",
+  "docs/runtime-interoperability-profile.md",
+];
 
 function parseArgs(argv) {
   const options = {};
@@ -59,8 +75,210 @@ function writeText(filePath, value) {
   writeFileSync(resolve(filePath), value);
 }
 
+function copyFileToOutput(sourcePath, outputPath) {
+  mkdirSync(dirname(resolve(outputPath)), { recursive: true });
+  copyFileSync(resolve(sourcePath), resolve(outputPath));
+}
+
 function printSummary(summary) {
   process.stdout.write(`${JSON.stringify(summary, null, 2)}\n`);
+}
+
+function gitOutput(args) {
+  return execFileSync("git", args, {
+    encoding: "utf8",
+  }).trim();
+}
+
+function describeFile(filePath) {
+  const resolvedPath = resolve(filePath);
+  const stat = statSync(resolvedPath);
+  const content = readFileSync(resolvedPath);
+  return {
+    path: relative(resolve("."), resolvedPath),
+    bytes: stat.size,
+    sha256: sha256Hex(content),
+  };
+}
+
+function resolveTrustedAttestationOverride(options) {
+  if (!options["trusted-attestation"]) {
+    return null;
+  }
+
+  const attestation = readJson(options["trusted-attestation"]);
+  const verification = verifyAttestation(attestation);
+  if (!verification.integrityValid) {
+    throw new Error(
+      `trusted attestation override is invalid:\n- ${verification.errors.join("\n- ")}`,
+    );
+  }
+
+  return {
+    attestation,
+    verification,
+    taskId: attestation.evidence?.task?.id ?? null,
+    sourcePath: resolve(options["trusted-attestation"]),
+  };
+}
+
+function resolveTrustedAnchorOverride(attestation, options) {
+  if (!options["trusted-anchor"]) {
+    return null;
+  }
+
+  const anchorReceipt = readJson(options["trusted-anchor"]);
+  const validation = validateAttestationAnchorReceipt(
+    attestation,
+    anchorReceipt,
+  );
+  if (!validation.valid) {
+    throw new Error(
+      `trusted anchor override does not match the attestation:\n- ${validation.errors.join("\n- ")}`,
+    );
+  }
+
+  return {
+    receipt: anchorReceipt,
+    sourcePath: resolve(options["trusted-anchor"]),
+  };
+}
+
+async function buildDemoArtifacts(options) {
+  const outputDir = resolve(options["output-dir"] ?? "artifacts");
+  mkdirSync(outputDir, { recursive: true });
+  const adapter = getRuntimeAdapter("agentplane");
+  const trustedAttestationOverride = resolveTrustedAttestationOverride(options);
+  if (
+    options["task-id"] &&
+    trustedAttestationOverride?.taskId &&
+    options["task-id"] !== trustedAttestationOverride.taskId
+  ) {
+    throw new Error(
+      `trusted attestation override taskId ${trustedAttestationOverride.taskId} does not match --task-id ${options["task-id"]}.`,
+    );
+  }
+  const trustedTaskId =
+    options["task-id"] ??
+    trustedAttestationOverride?.taskId ??
+    DEFAULT_DEMO_TRUSTED_TASK_ID;
+  const trustedSnapshot = extractAgentplaneTaskSnapshot({
+    taskId: trustedTaskId,
+    profile: loadProfile(options),
+  });
+
+  const trustedBundle = adaptRuntimeSnapshot({
+    adapter,
+    snapshot: trustedSnapshot,
+  });
+  const rejectedBundle = adaptRuntimeSnapshot({
+    adapter,
+    snapshot: readJson("examples/agentplane-runtime-failing.json"),
+  });
+
+  const trustedRuntimePath = resolve(outputDir, "trusted-runtime.json");
+  const trustedBundlePath = resolve(outputDir, "trusted-bundle.json");
+  const rejectedBundlePath = resolve(outputDir, "rejected-bundle.json");
+  writeJson(trustedRuntimePath, trustedSnapshot);
+  writeJson(trustedBundlePath, trustedBundle);
+  writeJson(rejectedBundlePath, rejectedBundle);
+
+  const generatedTrustedAttestation = createAttestation(trustedBundle);
+  if (
+    trustedAttestationOverride &&
+    trustedAttestationOverride.attestation.integrity.evidenceDigest !==
+      generatedTrustedAttestation.integrity.evidenceDigest
+  ) {
+    throw new Error(
+      "trusted attestation override does not match the current task extraction evidence.",
+    );
+  }
+  const trustedAttestation =
+    trustedAttestationOverride?.attestation ?? generatedTrustedAttestation;
+  const rejectedAttestation = createAttestation(rejectedBundle);
+
+  const trustedAttestationPath = resolve(outputDir, "trusted-attestation.json");
+  const rejectedAttestationPath = resolve(
+    outputDir,
+    "rejected-attestation.json",
+  );
+  writeJson(trustedAttestationPath, trustedAttestation);
+  writeJson(rejectedAttestationPath, rejectedAttestation);
+
+  const trustedVerification =
+    trustedAttestationOverride?.verification ??
+    verifyAttestation(trustedAttestation);
+  const rejectedVerification = verifyAttestation(rejectedAttestation);
+  const preparedAnchor = await anchorAttestation(trustedAttestation);
+  const trustedAnchorOverride = resolveTrustedAnchorOverride(
+    trustedAttestation,
+    options,
+  );
+  const trustedAnchor = trustedAnchorOverride?.receipt ?? preparedAnchor;
+  const trustedAnchorPath = resolve(outputDir, "trusted-anchor.json");
+  writeJson(trustedAnchorPath, trustedAnchor);
+
+  const avatarPath = ensureAvatarPng(outputDir);
+  const trustedReportPath = resolve(outputDir, "trusted-report.html");
+  const rejectedReportPath = resolve(outputDir, "rejected-report.html");
+  const indexPath = resolve(outputDir, "index.html");
+
+  writeText(
+    trustedReportPath,
+    renderAttestationReport({
+      attestation: trustedAttestation,
+      verification: trustedVerification,
+      anchorReceipt: trustedAnchor,
+      avatarFileName: avatarPath.split("/").at(-1),
+    }),
+  );
+  writeText(
+    rejectedReportPath,
+    renderAttestationReport({
+      attestation: rejectedAttestation,
+      verification: rejectedVerification,
+      avatarFileName: avatarPath.split("/").at(-1),
+    }),
+  );
+  writeText(
+    indexPath,
+    buildDemoIndex({
+      trusted: trustedAttestation,
+      rejected: rejectedAttestation,
+      trustedVerification,
+      rejectedVerification,
+      trustedAnchor,
+      trustedTaskId,
+    }),
+  );
+
+  return {
+    outputDir,
+    trustedTaskId,
+    trustedSnapshot,
+    trustedBundle,
+    rejectedBundle,
+    trustedAttestation,
+    rejectedAttestation,
+    trustedVerification,
+    rejectedVerification,
+    trustedAnchor,
+    trustedAnchorSourcePath: trustedAnchorOverride?.sourcePath ?? null,
+    trustedAttestationSourcePath:
+      trustedAttestationOverride?.sourcePath ?? null,
+    files: {
+      trustedRuntimePath,
+      trustedBundlePath,
+      rejectedBundlePath,
+      trustedAttestationPath,
+      rejectedAttestationPath,
+      trustedAnchorPath,
+      trustedReportPath,
+      rejectedReportPath,
+      indexPath,
+      avatarPath,
+    },
+  };
 }
 
 function usage() {
@@ -75,6 +293,7 @@ function usage() {
       "  node src/cli.mjs verify --input <attestation.json> [--expect trusted|caution|reject]",
       "  node src/cli.mjs render --input <attestation.json> --output <report.html> [--anchor <anchor.json>]",
       `  node src/cli.mjs demo [--task-id ${DEFAULT_DEMO_TRUSTED_TASK_ID}] [--output-dir artifacts]`,
+      `  node src/cli.mjs freeze [--task-id ${DEFAULT_DEMO_TRUSTED_TASK_ID}] [--output-dir ${DEFAULT_FREEZE_OUTPUT_DIR}] [--trusted-attestation <attestation.json>] [--trusted-anchor <anchor.json>]`,
       "",
       `Available adapters: ${listRuntimeAdapters()
         .map((adapter) => adapter.adapterId)
@@ -264,105 +483,137 @@ function runRender(options) {
 }
 
 async function runDemo(options) {
-  const outputDir = resolve(options["output-dir"] ?? "artifacts");
-  mkdirSync(outputDir, { recursive: true });
-  const adapter = getRuntimeAdapter("agentplane");
-  const trustedTaskId = options["task-id"] ?? DEFAULT_DEMO_TRUSTED_TASK_ID;
-  const trustedSnapshot = extractAgentplaneTaskSnapshot({
-    taskId: trustedTaskId,
-    profile: loadProfile(options),
-  });
-
-  const trustedBundle = adaptRuntimeSnapshot({
-    adapter,
-    snapshot: trustedSnapshot,
-  });
-  const rejectedBundle = adaptRuntimeSnapshot({
-    adapter,
-    snapshot: readJson("examples/agentplane-runtime-failing.json"),
-  });
-
-  const trustedRuntimePath = resolve(outputDir, "trusted-runtime.json");
-  const trustedBundlePath = resolve(outputDir, "trusted-bundle.json");
-  const rejectedBundlePath = resolve(outputDir, "rejected-bundle.json");
-  writeJson(trustedRuntimePath, trustedSnapshot);
-  writeJson(trustedBundlePath, trustedBundle);
-  writeJson(rejectedBundlePath, rejectedBundle);
-
-  const trustedAttestation = createAttestation(trustedBundle);
-  const rejectedAttestation = createAttestation(rejectedBundle);
-
-  const trustedAttestationPath = resolve(outputDir, "trusted-attestation.json");
-  const rejectedAttestationPath = resolve(
-    outputDir,
-    "rejected-attestation.json",
-  );
-  writeJson(trustedAttestationPath, trustedAttestation);
-  writeJson(rejectedAttestationPath, rejectedAttestation);
-
-  const trustedVerification = verifyAttestation(trustedAttestation);
-  const rejectedVerification = verifyAttestation(rejectedAttestation);
-  const trustedAnchor = await anchorAttestation(trustedAttestation);
-  const trustedAnchorPath = resolve(outputDir, "trusted-anchor.json");
-  writeJson(trustedAnchorPath, trustedAnchor);
-
-  const avatarPath = ensureAvatarPng(outputDir);
-  writeText(
-    resolve(outputDir, "trusted-report.html"),
-    renderAttestationReport({
-      attestation: trustedAttestation,
-      verification: trustedVerification,
-      anchorReceipt: trustedAnchor,
-      avatarFileName: avatarPath.split("/").at(-1),
-    }),
-  );
-  writeText(
-    resolve(outputDir, "rejected-report.html"),
-    renderAttestationReport({
-      attestation: rejectedAttestation,
-      verification: rejectedVerification,
-      avatarFileName: avatarPath.split("/").at(-1),
-    }),
-  );
-  writeText(
-    resolve(outputDir, "index.html"),
-    buildDemoIndex({
-      trusted: trustedAttestation,
-      rejected: rejectedAttestation,
-      trustedVerification,
-      rejectedVerification,
-      trustedAnchor,
-      trustedTaskId,
-    }),
-  );
+  const demo = await buildDemoArtifacts(options);
 
   printSummary({
     command: "demo",
-    outputDir,
-    trustedTaskId,
+    outputDir: demo.outputDir,
+    trustedTaskId: demo.trustedTaskId,
     trusted: {
-      verdict: trustedVerification.verdict,
-      score: trustedVerification.score,
-      bundleId: trustedAttestation.inputSurface.bundleId,
-      anchorMode: trustedAnchor.submission.mode,
+      verdict: demo.trustedVerification.verdict,
+      score: demo.trustedVerification.score,
+      bundleId: demo.trustedAttestation.inputSurface.bundleId,
+      anchorMode: demo.trustedAnchor.submission.mode,
     },
     rejected: {
-      verdict: rejectedVerification.verdict,
-      score: rejectedVerification.score,
-      bundleId: rejectedAttestation.inputSurface.bundleId,
+      verdict: demo.rejectedVerification.verdict,
+      score: demo.rejectedVerification.score,
+      bundleId: demo.rejectedAttestation.inputSurface.bundleId,
     },
     files: [
-      trustedRuntimePath,
-      trustedBundlePath,
-      rejectedBundlePath,
-      trustedAttestationPath,
-      rejectedAttestationPath,
-      trustedAnchorPath,
-      resolve(outputDir, "trusted-report.html"),
-      resolve(outputDir, "rejected-report.html"),
-      resolve(outputDir, "index.html"),
-      avatarPath,
+      demo.files.trustedRuntimePath,
+      demo.files.trustedBundlePath,
+      demo.files.rejectedBundlePath,
+      demo.files.trustedAttestationPath,
+      demo.files.rejectedAttestationPath,
+      demo.files.trustedAnchorPath,
+      demo.files.trustedReportPath,
+      demo.files.rejectedReportPath,
+      demo.files.indexPath,
+      demo.files.avatarPath,
     ],
+  });
+}
+
+function buildFreezeManifest({ freezeDir, demo, copiedDocs }) {
+  const repoRoot = resolve(".");
+  const freezeFiles = [
+    demo.files.trustedRuntimePath,
+    demo.files.trustedBundlePath,
+    demo.files.rejectedBundlePath,
+    demo.files.trustedAttestationPath,
+    demo.files.rejectedAttestationPath,
+    demo.files.trustedAnchorPath,
+    demo.files.trustedReportPath,
+    demo.files.rejectedReportPath,
+    demo.files.indexPath,
+    demo.files.avatarPath,
+    ...copiedDocs.map((doc) => doc.outputPath),
+  ];
+
+  return {
+    schemaVersion: "1.0.0",
+    generatedAt: new Date().toISOString(),
+    command: "freeze",
+    freezeDir: relative(repoRoot, freezeDir),
+    repo: {
+      branch: gitOutput(["rev-parse", "--abbrev-ref", "HEAD"]),
+      commit: gitOutput(["rev-parse", "HEAD"]),
+      cleanTrackedWorktree:
+        gitOutput(["status", "--short", "--untracked-files=no"]) === "",
+    },
+    trustedTaskId: demo.trustedTaskId,
+    trusted: {
+      attestationId: demo.trustedAttestation.attestationId,
+      verdict: demo.trustedVerification.verdict,
+      score: demo.trustedVerification.score,
+      bundleId: demo.trustedAttestation.inputSurface.bundleId,
+    },
+    rejected: {
+      attestationId: demo.rejectedAttestation.attestationId,
+      verdict: demo.rejectedVerification.verdict,
+      score: demo.rejectedVerification.score,
+      bundleId: demo.rejectedAttestation.inputSurface.bundleId,
+    },
+    anchor: {
+      mode: demo.trustedAnchor.submission.mode,
+      status: demo.trustedAnchor.submission.status,
+      txHash: demo.trustedAnchor.submission.txHash,
+      txUrl: demo.trustedAnchor.submission.txUrl,
+      source:
+        demo.trustedAnchorSourcePath !== null
+          ? relative(repoRoot, demo.trustedAnchorSourcePath)
+          : "generated-during-freeze",
+    },
+    trustedAttestation: {
+      source:
+        demo.trustedAttestationSourcePath !== null
+          ? relative(repoRoot, demo.trustedAttestationSourcePath)
+          : "generated-during-freeze",
+    },
+    documents: copiedDocs.map((doc) => ({
+      source: doc.sourcePath,
+      path: relative(repoRoot, doc.outputPath),
+    })),
+    files: freezeFiles.map(describeFile),
+  };
+}
+
+async function runFreeze(options) {
+  const freezeDir = resolve(options["output-dir"] ?? DEFAULT_FREEZE_OUTPUT_DIR);
+  const demo = await buildDemoArtifacts({
+    ...options,
+    "output-dir": freezeDir,
+  });
+
+  const copiedDocs = FREEZE_DOCS.map((sourcePath) => {
+    const outputPath = resolve(freezeDir, sourcePath);
+    copyFileToOutput(sourcePath, outputPath);
+    return {
+      sourcePath,
+      outputPath,
+    };
+  });
+
+  const manifest = buildFreezeManifest({
+    freezeDir,
+    demo,
+    copiedDocs,
+  });
+  const manifestPath = resolve(freezeDir, "freeze-manifest.json");
+  writeJson(manifestPath, manifest);
+
+  printSummary({
+    command: "freeze",
+    outputDir: freezeDir,
+    manifest: manifestPath,
+    trustedTaskId: demo.trustedTaskId,
+    trustedVerdict: demo.trustedVerification.verdict,
+    rejectedVerdict: demo.rejectedVerification.verdict,
+    anchor: manifest.anchor,
+    trustedAttestation: manifest.trustedAttestation,
+    documentCount: copiedDocs.length,
+    fileCount: manifest.files.length,
   });
 }
 
@@ -391,6 +642,9 @@ async function main() {
       return;
     case "demo":
       await runDemo(options);
+      return;
+    case "freeze":
+      await runFreeze(options);
       return;
     default:
       usage();

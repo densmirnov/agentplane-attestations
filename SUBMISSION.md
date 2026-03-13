@@ -121,9 +121,16 @@ Generate the demo:
 npm run demo
 ```
 
+Freeze the final submission pack:
+
+```bash
+npm run freeze
+```
+
 Open:
 
 - `artifacts/index.html`
+- `artifacts/freeze/freeze-manifest.json`
 
 Optional: regenerate a live Base anchor if a funded signer env is available:
 
@@ -133,6 +140,12 @@ node src/cli.mjs render --input artifacts/trusted-attestation.json --anchor arti
 ```
 
 The submit path accepts either `BASE_PRIVATE_KEY` or `BASE_DEPLOYER_PRIVATE_KEY`.
+
+If a trusted attestation and its matching anchor already exist and you want the freeze bundle to snapshot that exact pair, run:
+
+```bash
+node src/cli.mjs freeze --trusted-attestation artifacts/trusted-attestation.json --trusted-anchor artifacts/trusted-anchor.json
+```
 
 ## Submission-Time Repo Hygiene Checklist
 

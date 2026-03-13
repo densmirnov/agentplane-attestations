@@ -140,6 +140,14 @@ Generated files land in `artifacts/`:
 A concise walkthrough is available in [docs/demo-script.md](/Users/densmirnov/Desktop/synthesis-hackathon/docs/demo-script.md).
 A submission-ready evidence pack is available in [SUBMISSION.md](/Users/densmirnov/Desktop/synthesis-hackathon/SUBMISSION.md) and [docs/conversation-log.md](/Users/densmirnov/Desktop/synthesis-hackathon/docs/conversation-log.md).
 
+To snapshot the final hackathon pack into one reproducible directory with a manifest and file hashes, run:
+
+```bash
+npm run freeze
+```
+
+This writes a submission-freeze bundle into `artifacts/freeze`.
+
 ## Base Anchor Model
 
 The on-chain unit is deliberately narrow:

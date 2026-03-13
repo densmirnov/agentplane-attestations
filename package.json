@@ -19,6 +19,7 @@
     "report:pass": "node src/cli.mjs render --input artifacts/passing-attestation.json --output artifacts/passing-report.html",
     "report:fail": "node src/cli.mjs render --input artifacts/failing-attestation.json --output artifacts/failing-report.html",
     "demo": "node src/cli.mjs demo",
+    "freeze": "node src/cli.mjs freeze",
     "test": "node --test"
   },
   "dependencies": {

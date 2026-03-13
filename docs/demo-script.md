@@ -19,6 +19,14 @@ Then open:
 The trusted path is generated from the real completed `agentplane` task `202603131341-YNE1V9`.
 The rejected path remains a controlled negative fixture.
 
+If you need a final submission snapshot instead of a demo-only rebuild, run:
+
+```bash
+npm run freeze
+```
+
+This writes a frozen pack and `freeze-manifest.json` into `artifacts/freeze`.
+
 ## Talk Track
 
 ### 1. Problem

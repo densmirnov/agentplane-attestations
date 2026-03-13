@@ -405,3 +405,75 @@ test("CLI demo command builds a judge-facing demo from a real completed task", (
   assert.match(indexHtml, /trusted-report\.html/);
   assert.match(indexHtml, /rejected-report\.html/);
 });
+
+test("CLI freeze command writes a submission manifest with hashed artifacts", () => {
+  const outputDir = "artifacts/test-freeze";
+
+  execFileSync("node", ["src/cli.mjs", "freeze", "--output-dir", outputDir], {
+    encoding: "utf8",
+  });
+
+  const manifest = loadJson(`../${outputDir}/freeze-manifest.json`);
+  const trustedReportHtml = readFileSync(
+    new URL(`../${outputDir}/trusted-report.html`, import.meta.url),
+    "utf8",
+  );
+  const copiedSubmission = readFileSync(
+    new URL(`../${outputDir}/SUBMISSION.md`, import.meta.url),
+    "utf8",
+  );
+
+  assert.equal(manifest.command, "freeze");
+  assert.equal(manifest.trustedTaskId, "202603131341-YNE1V9");
+  assert.equal(manifest.trusted.verdict, "trusted");
+  assert.equal(manifest.rejected.verdict, "reject");
+  assert.equal(manifest.anchor.source, "generated-during-freeze");
+  assert.ok(Array.isArray(manifest.files));
+  assert.ok(
+    manifest.files.some(
+      (file) => file.path === `${outputDir}/trusted-report.html`,
+    ),
+  );
+  assert.ok(
+    manifest.files.some(
+      (file) => file.path === `${outputDir}/docs/conversation-log.md`,
+    ),
+  );
+  assert.match(trustedReportHtml, /Attestation anchor/);
+  assert.match(copiedSubmission, /Submission Pack/);
+});
+
+test("CLI freeze command can snapshot a matching attestation and anchor pair", () => {
+  const sourceDir = "artifacts/test-freeze-source";
+  const outputDir = "artifacts/test-freeze-paired";
+
+  execFileSync("node", ["src/cli.mjs", "demo", "--output-dir", sourceDir], {
+    encoding: "utf8",
+  });
+
+  execFileSync(
+    "node",
+    [
+      "src/cli.mjs",
+      "freeze",
+      "--output-dir",
+      outputDir,
+      "--trusted-attestation",
+      `${sourceDir}/trusted-attestation.json`,
+      "--trusted-anchor",
+      `${sourceDir}/trusted-anchor.json`,
+    ],
+    {
+      encoding: "utf8",
+    },
+  );
+
+  const manifest = loadJson(`../${outputDir}/freeze-manifest.json`);
+
+  assert.equal(
+    manifest.trustedAttestation.source,
+    `${sourceDir}/trusted-attestation.json`,
+  );
+  assert.equal(manifest.anchor.source, `${sourceDir}/trusted-anchor.json`);
+  assert.equal(manifest.anchor.mode, "prepared");
+});
