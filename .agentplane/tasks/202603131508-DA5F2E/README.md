@@ -1,7 +1,8 @@
 ---
 id: "202603131508-DA5F2E"
 title: "Polish judge-facing demo surface"
-status: "DOING"
+result_summary: "The demo now uses a real completed agentplane task for the trusted path, produces clearer judge-facing reports and index pages, and ships with a reproducible 2-3 minute walkthrough script."
+status: "DONE"
 priority: "med"
 owner: "CODER"
 depends_on: []
@@ -18,11 +19,16 @@ verification:
   updated_at: "2026-03-13T15:16:36.323Z"
   updated_by: "CODER"
   note: "Command: npm test | Result: pass | Evidence: 13 tests passed including the real-task demo regression test. Scope: attestation, anchor, extractor, and demo generation paths. Command: npm run demo | Result: pass | Evidence: emitted trusted and rejected demo artifacts with the trusted path sourced from task 202603131341-YNE1V9. Scope: judge-facing end-to-end flow. Command: rg -n \"Trusted path source task|real completed agentplane task|trusted-report\\.html|rejected-report\\.html|Base anchor receipt|Walkthrough\" artifacts/index.html | Result: pass | Evidence: generated index contains real-task framing, trusted/rejected links, anchor wording, and walkthrough block. Scope: demo index narrative. Command: sed -n '1,220p' docs/demo-script.md | Result: pass | Evidence: demo script documents the 2-3 minute talk track and exact commands. Scope: presentation docs. Command: agentplane doctor | Result: pass | Evidence: ok true with findings 0. Scope: workflow health. Command: node .agentplane/policy/check-routing.mjs | Result: pass | Evidence: policy routing OK. Scope: policy validation."
-commit: null
+commit:
+  hash: "e489f68f1b110a49b2620f00f570bd8a5a26e701"
+  message: "✨ demo: polish judge-facing surface"
 comments:
   -
     author: "CODER"
     body: "Start: reworking the demo to use real agentplane task evidence for the trusted path, improving judge-facing narrative surfaces, and adding a short demo script for the hackathon walkthrough."
+  -
+    author: "CODER"
+    body: "Verified: shipped a judge-facing demo flow built on real completed task evidence, updated narrative surfaces, and added a concise walkthrough script while preserving trusted/rejected/anchor semantics."
 events:
   -
     type: "status"
@@ -37,8 +43,15 @@ events:
     author: "CODER"
     state: "ok"
     note: "Command: npm test | Result: pass | Evidence: 13 tests passed including the real-task demo regression test. Scope: attestation, anchor, extractor, and demo generation paths. Command: npm run demo | Result: pass | Evidence: emitted trusted and rejected demo artifacts with the trusted path sourced from task 202603131341-YNE1V9. Scope: judge-facing end-to-end flow. Command: rg -n \"Trusted path source task|real completed agentplane task|trusted-report\\.html|rejected-report\\.html|Base anchor receipt|Walkthrough\" artifacts/index.html | Result: pass | Evidence: generated index contains real-task framing, trusted/rejected links, anchor wording, and walkthrough block. Scope: demo index narrative. Command: sed -n '1,220p' docs/demo-script.md | Result: pass | Evidence: demo script documents the 2-3 minute talk track and exact commands. Scope: presentation docs. Command: agentplane doctor | Result: pass | Evidence: ok true with findings 0. Scope: workflow health. Command: node .agentplane/policy/check-routing.mjs | Result: pass | Evidence: policy routing OK. Scope: policy validation."
+  -
+    type: "status"
+    at: "2026-03-13T15:17:24.141Z"
+    author: "CODER"
+    from: "DOING"
+    to: "DONE"
+    note: "Verified: shipped a judge-facing demo flow built on real completed task evidence, updated narrative surfaces, and added a concise walkthrough script while preserving trusted/rejected/anchor semantics."
 doc_version: 3
-doc_updated_at: "2026-03-13T15:16:36.324Z"
+doc_updated_at: "2026-03-13T15:17:24.142Z"
 doc_updated_by: "CODER"
 description: "Build a judge-oriented demo flow around real agentplane task evidence, clearer trusted/reject/anchor narrative, and a short demo script for hackathon presentation."
 id_source: "generated"
