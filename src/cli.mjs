@@ -1,6 +1,8 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { getRuntimeAdapter, listRuntimeAdapters } from "./adapters/index.mjs";
+import { resolveAgentplaneProfile } from "./lib/agentplane-profile.mjs";
+import { extractAgentplaneTaskSnapshot } from "./lib/agentplane-task-extractor.mjs";
 import { createAttestation, verifyAttestation } from "./lib/attestation.mjs";
 import { ensureAvatarPng } from "./lib/avatar.mjs";
 import { canonicalStringify } from "./lib/canonical-json.mjs";
@@ -33,6 +35,14 @@ function readJson(filePath) {
   return JSON.parse(readFileSync(resolve(filePath), "utf8"));
 }
 
+function loadProfile(options) {
+  if (!options.profile) {
+    return resolveAgentplaneProfile();
+  }
+
+  return resolveAgentplaneProfile(readJson(options.profile));
+}
+
 function writeJson(filePath, value) {
   mkdirSync(dirname(resolve(filePath)), { recursive: true });
   writeFileSync(resolve(filePath), `${canonicalStringify(value)}\n`);
@@ -51,7 +61,9 @@ function usage() {
   process.stderr.write(
     [
       "Usage:",
+      "  node src/cli.mjs extract --task-id <id> --output <runtime-snapshot.json> [--profile <profile.json>]",
       "  node src/cli.mjs adapt --adapter <id> --input <runtime-snapshot.json> --output <bundle.json>",
+      "  node src/cli.mjs adapt --adapter agentplane --task-id <id> --output <bundle.json> [--profile <profile.json>]",
       "  node src/cli.mjs generate --input <artifact-bundle.json> --output <attestation.json>",
       "  node src/cli.mjs verify --input <attestation.json> [--expect trusted|caution|reject]",
       "  node src/cli.mjs render --input <attestation.json> --output <report.html>",
@@ -65,13 +77,53 @@ function usage() {
   process.stderr.write("\n");
 }
 
+function runExtract(options) {
+  if (!options["task-id"] || !options.output) {
+    throw new Error("extract requires --task-id and --output");
+  }
+
+  const snapshot = extractAgentplaneTaskSnapshot({
+    taskId: options["task-id"],
+    profile: loadProfile(options),
+  });
+  writeJson(options.output, snapshot);
+
+  printSummary({
+    command: "extract",
+    runtime: snapshot.runtime,
+    taskId: options["task-id"],
+    output: options.output,
+    commit: snapshot.execution.commit,
+    filesChanged: snapshot.execution.filesChanged.length,
+    checkCount: snapshot.verification.checks.length,
+  });
+}
+
 function runAdapt(options) {
-  if (!options.adapter || !options.input || !options.output) {
-    throw new Error("adapt requires --adapter, --input, and --output");
+  if (!options.adapter || !options.output) {
+    throw new Error("adapt requires --adapter and --output");
   }
 
   const adapter = getRuntimeAdapter(options.adapter);
-  const snapshot = readJson(options.input);
+  let snapshot = null;
+
+  if (options.input) {
+    snapshot = readJson(options.input);
+  } else if (options["task-id"]) {
+    if (adapter.adapterId !== "agentplane") {
+      throw new Error(
+        "task extraction is currently supported only for --adapter agentplane",
+      );
+    }
+
+    snapshot = extractAgentplaneTaskSnapshot({
+      taskId: options["task-id"],
+      profile: loadProfile(options),
+    });
+  } else {
+    throw new Error("adapt requires either --input or --task-id");
+  }
+
   const bundle = adaptRuntimeSnapshot({ adapter, snapshot });
   writeJson(options.output, bundle);
 
@@ -79,7 +131,8 @@ function runAdapt(options) {
     command: "adapt",
     adapter: adapter.adapterId,
     runtime: adapter.runtime,
-    input: options.input,
+    input: options.input ?? null,
+    taskId: options["task-id"] ?? null,
     output: options.output,
     bundleId: bundle.bundleId,
     artifactCount: bundle.artifacts.length,
@@ -245,6 +298,9 @@ function main() {
   const options = parseArgs(rest);
 
   switch (command) {
+    case "extract":
+      runExtract(options);
+      return;
     case "generate":
       runGenerate(options);
       return;

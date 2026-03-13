@@ -20,6 +20,7 @@ The current MVP is intentionally narrow:
 
 - ingest a canonical artifact bundle from JSON
 - accept runtime-native snapshots through adapters and convert them into canonical bundles
+- extract a real completed `agentplane` task into a runtime snapshot before adaptation
 - generate a signed-style attestation object with stable hashes
 - verify the attestation against explicit trust policy rules
 - render a static HTML report for demo use
@@ -62,6 +63,18 @@ Adapt a passing `agentplane` runtime snapshot into a canonical bundle:
 npm run adapt:agentplane:pass
 ```
 
+Extract a real completed `agentplane` task into a runtime snapshot:
+
+```bash
+npm run extract:agentplane:task
+```
+
+Adapt a real completed `agentplane` task directly into a canonical bundle:
+
+```bash
+npm run adapt:agentplane:task
+```
+
 Verify only the passing attestation:
 
 ```bash
@@ -78,6 +91,8 @@ npm run report:pass
 
 Generated files land in `artifacts/`:
 
+- `extracted-runtime.json`
+- `extracted-bundle.json`
 - `passing-bundle.json`
 - `failing-bundle.json`
 - `passing-attestation.json`
@@ -125,6 +140,7 @@ The intended layering is:
 Built-in today:
 
 - `agentplane` adapter
+- `agentplane` task extractor for `.agentplane/tasks/<id>/README.md` plus git commit evidence
 
 Target for future integrations:
 

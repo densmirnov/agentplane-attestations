@@ -1,7 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { getRuntimeAdapter } from "../src/adapters/index.mjs";
+import { extractAgentplaneTaskSnapshot } from "../src/lib/agentplane-task-extractor.mjs";
 import {
   createAttestation,
   verifyAttestation,
@@ -123,4 +125,62 @@ test("agentplane adapter path generates a trusted attestation", () => {
   assert.equal(attestation.inputSurface.adapter.adapterId, "agentplane");
   assert.equal(attestation.inputSurface.adapter.runtime, "agentplane");
   assert.equal(verification.verdict, "trusted");
+});
+
+test("real agentplane task extractor emits a trusted runtime snapshot", () => {
+  const snapshot = extractAgentplaneTaskSnapshot({
+    taskId: "202603131024-THDVQ1",
+  });
+
+  assert.equal(snapshot.runtime, "agentplane");
+  assert.equal(snapshot.task.id, "202603131024-THDVQ1");
+  assert.equal(
+    snapshot.execution.commit,
+    "5a9d8c57afbe78a193f48bec679e6c4e758c16c0",
+  );
+  assert.ok(
+    snapshot.execution.filesChanged.includes("src/adapters/agentplane.mjs"),
+  );
+  assert.ok(snapshot.verification.checks.length >= 4);
+  assert.equal(snapshot.approvals.human.status, "approved");
+  assert.equal(snapshot.conversation.attached, true);
+});
+
+test("real agentplane task path generates a trusted attestation", () => {
+  const adapter = getRuntimeAdapter("agentplane");
+  const snapshot = extractAgentplaneTaskSnapshot({
+    taskId: "202603131024-THDVQ1",
+  });
+  const bundle = adaptRuntimeSnapshot({ adapter, snapshot });
+  const attestation = createAttestation(bundle);
+  const verification = verifyAttestation(attestation);
+
+  assert.equal(verification.verdict, "trusted");
+  assert.equal(attestation.inputSurface.adapter.adapterId, "agentplane");
+  assert.equal(
+    attestation.inputSurface.bundleId,
+    "agentplane-task-202603131024-THDVQ1",
+  );
+});
+
+test("CLI extract command writes a runtime snapshot for a real task", () => {
+  const outputPath = "artifacts/test-extracted-runtime.json";
+  execFileSync(
+    "node",
+    [
+      "src/cli.mjs",
+      "extract",
+      "--task-id",
+      "202603131024-THDVQ1",
+      "--output",
+      outputPath,
+    ],
+    {
+      encoding: "utf8",
+    },
+  );
+
+  const snapshot = loadJson(`../${outputPath}`);
+  assert.equal(snapshot.task.id, "202603131024-THDVQ1");
+  assert.equal(snapshot.runtime, "agentplane");
 });
