@@ -1,0 +1,455 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentplane.dev/schemas/artifact-bundle.schema.json",
+  "title": "Artifact Bundle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "bundleId", "subject", "context", "artifacts"],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "bundleId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "subject": {
+      "$ref": "#/$defs/subject"
+    },
+    "context": {
+      "$ref": "#/$defs/context"
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/artifact"
+      }
+    }
+  },
+  "$defs": {
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["agent", "human", "system", "ci", "chain"]
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "displayName": {
+          "type": "string"
+        }
+      }
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "agentId", "displayName", "harness", "model"],
+      "properties": {
+        "kind": {
+          "const": "agent"
+        },
+        "agentId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "harness": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operator": {
+          "$ref": "#/$defs/actor"
+        }
+      }
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project", "task", "source"],
+      "properties": {
+        "project": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "theme", "problem"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "theme": {
+              "type": "string",
+              "minLength": 1
+            },
+            "problem": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "task": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "title"],
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "title": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["repo", "branch"],
+          "properties": {
+            "repo": {
+              "type": "string",
+              "minLength": 1
+            },
+            "branch": {
+              "type": "string",
+              "minLength": 1
+            },
+            "commit": {
+              "type": ["string", "null"]
+            }
+          }
+        }
+      }
+    },
+    "artifactSubjectRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["task", "run", "agent", "project", "artifact"]
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "required", "status"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pass", "fail", "skip"]
+        }
+      }
+    },
+    "diffStat": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["added", "deleted"],
+      "properties": {
+        "added": {
+          "type": "number",
+          "minimum": 0
+        },
+        "deleted": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifactId",
+        "kind",
+        "generatedAt",
+        "producer",
+        "subjectRef",
+        "mediaType",
+        "payload"
+      ],
+      "properties": {
+        "artifactId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["intent", "approval", "execution", "verification", "conversation", "anchor", "note"]
+        },
+        "generatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "producer": {
+          "$ref": "#/$defs/actor"
+        },
+        "subjectRef": {
+          "$ref": "#/$defs/artifactSubjectRef"
+        },
+        "mediaType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "locator": {
+          "type": "string"
+        },
+        "payload": {
+          "type": "object"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "intent"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["summary"],
+                "properties": {
+                  "summary": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "scope": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "requestedOutcome": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "approval"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["status"],
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": ["approved", "rejected", "waived", "missing"]
+                  },
+                  "rationale": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "execution"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["repo", "branch"],
+                "properties": {
+                  "repo": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "branch": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "commit": {
+                    "type": ["string", "null"]
+                  },
+                  "filesChanged": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "diffStat": {
+                    "$ref": "#/$defs/diffStat"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "verification"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["checks"],
+                "properties": {
+                  "conversationLogAttached": {
+                    "type": "boolean"
+                  },
+                  "checks": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "$ref": "#/$defs/check"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "conversation"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["attached"],
+                "properties": {
+                  "attached": {
+                    "type": "boolean"
+                  },
+                  "uri": {
+                    "type": "string"
+                  },
+                  "summary": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "anchor"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["kind"],
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "chain": {
+                    "type": "string"
+                  },
+                  "txUrl": {
+                    "type": "string"
+                  },
+                  "reference": {
+                    "type": "string"
+                  }
+                },
+                "anyOf": [
+                  {
+                    "required": ["txUrl"]
+                  },
+                  {
+                    "required": ["reference"]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "note"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "payload": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["text"],
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

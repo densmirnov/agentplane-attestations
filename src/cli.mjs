@@ -1,21 +1,21 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
-import { createAttestation, verifyAttestation } from './lib/attestation.mjs';
-import { ensureAvatarPng } from './lib/avatar.mjs';
-import { canonicalStringify } from './lib/canonical-json.mjs';
-import { buildDemoIndex, renderAttestationReport } from './lib/report.mjs';
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { createAttestation, verifyAttestation } from "./lib/attestation.mjs";
+import { ensureAvatarPng } from "./lib/avatar.mjs";
+import { canonicalStringify } from "./lib/canonical-json.mjs";
+import { buildDemoIndex, renderAttestationReport } from "./lib/report.mjs";
 
 function parseArgs(argv) {
   const options = {};
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
-    if (!token.startsWith('--')) {
+    if (!token.startsWith("--")) {
       continue;
     }
 
     const key = token.slice(2);
     const next = argv[index + 1];
-    if (!next || next.startsWith('--')) {
+    if (!next || next.startsWith("--")) {
       options[key] = true;
       continue;
     }
@@ -28,7 +28,7 @@ function parseArgs(argv) {
 }
 
 function readJson(filePath) {
-  return JSON.parse(readFileSync(resolve(filePath), 'utf8'));
+  return JSON.parse(readFileSync(resolve(filePath), "utf8"));
 }
 
 function writeJson(filePath, value) {
@@ -48,45 +48,48 @@ function printSummary(summary) {
 function usage() {
   process.stderr.write(
     [
-      'Usage:',
-      '  node src/cli.mjs generate --input <evidence.json> --output <attestation.json>',
-      '  node src/cli.mjs verify --input <attestation.json> [--expect trusted|caution|reject]',
-      '  node src/cli.mjs render --input <attestation.json> --output <report.html>',
-      '  node src/cli.mjs demo [--output-dir artifacts]'
-    ].join('\n')
+      "Usage:",
+      "  node src/cli.mjs generate --input <artifact-bundle.json> --output <attestation.json>",
+      "  node src/cli.mjs verify --input <attestation.json> [--expect trusted|caution|reject]",
+      "  node src/cli.mjs render --input <attestation.json> --output <report.html>",
+      "  node src/cli.mjs demo [--output-dir artifacts]",
+    ].join("\n"),
   );
-  process.stderr.write('\n');
+  process.stderr.write("\n");
 }
 
 function runGenerate(options) {
   if (!options.input || !options.output) {
-    throw new Error('generate requires --input and --output');
+    throw new Error("generate requires --input and --output");
   }
 
-  const evidence = readJson(options.input);
-  const attestation = createAttestation(evidence);
+  const input = readJson(options.input);
+  const attestation = createAttestation(input);
   writeJson(options.output, attestation);
 
   printSummary({
-    command: 'generate',
+    command: "generate",
+    input: options.input,
+    inputType: attestation.inputSurface.type,
     output: options.output,
     attestationId: attestation.attestationId,
     verdict: attestation.trust.verdict,
-    score: attestation.trust.score
+    score: attestation.trust.score,
+    bundleId: attestation.inputSurface.bundleId ?? null,
   });
 }
 
 function runVerify(options) {
   if (!options.input) {
-    throw new Error('verify requires --input');
+    throw new Error("verify requires --input");
   }
 
-  const expectedVerdict = options.expect ?? 'trusted';
+  const expectedVerdict = options.expect ?? "trusted";
   const attestation = readJson(options.input);
   const result = verifyAttestation(attestation);
 
   printSummary({
-    command: 'verify',
+    command: "verify",
     input: options.input,
     expectedVerdict,
     actualVerdict: result.verdict,
@@ -94,7 +97,7 @@ function runVerify(options) {
     integrityValid: result.integrityValid,
     policySatisfied: result.policySatisfied,
     errors: result.errors,
-    warnings: result.warnings
+    warnings: result.warnings,
   });
 
   if (result.verdict !== expectedVerdict || !result.integrityValid) {
@@ -104,7 +107,7 @@ function runVerify(options) {
 
 function runRender(options) {
   if (!options.input || !options.output) {
-    throw new Error('render requires --input and --output');
+    throw new Error("render requires --input and --output");
   }
 
   const attestation = readJson(options.input);
@@ -114,32 +117,32 @@ function runRender(options) {
   const html = renderAttestationReport({
     attestation,
     verification,
-    avatarFileName: avatarPath.split('/').at(-1)
+    avatarFileName: avatarPath.split("/").at(-1),
   });
 
   writeText(outputPath, html);
 
   printSummary({
-    command: 'render',
+    command: "render",
     input: options.input,
     output: options.output,
     verdict: verification.verdict,
-    avatar: avatarPath
+    avatar: avatarPath,
   });
 }
 
 function runDemo(options) {
-  const outputDir = resolve(options['output-dir'] ?? 'artifacts');
+  const outputDir = resolve(options["output-dir"] ?? "artifacts");
   mkdirSync(outputDir, { recursive: true });
 
-  const passingEvidence = readJson('examples/passing-evidence.json');
-  const failingEvidence = readJson('examples/failing-evidence.json');
+  const passingEvidence = readJson("examples/passing-bundle.json");
+  const failingEvidence = readJson("examples/failing-bundle.json");
 
   const passingAttestation = createAttestation(passingEvidence);
   const failingAttestation = createAttestation(failingEvidence);
 
-  const passingAttestationPath = resolve(outputDir, 'passing-attestation.json');
-  const failingAttestationPath = resolve(outputDir, 'failing-attestation.json');
+  const passingAttestationPath = resolve(outputDir, "passing-attestation.json");
+  const failingAttestationPath = resolve(outputDir, "failing-attestation.json");
   writeJson(passingAttestationPath, passingAttestation);
   writeJson(failingAttestationPath, failingAttestation);
 
@@ -148,50 +151,52 @@ function runDemo(options) {
 
   const avatarPath = ensureAvatarPng(outputDir);
   writeText(
-    resolve(outputDir, 'passing-report.html'),
+    resolve(outputDir, "passing-report.html"),
     renderAttestationReport({
       attestation: passingAttestation,
       verification: passingVerification,
-      avatarFileName: avatarPath.split('/').at(-1)
-    })
+      avatarFileName: avatarPath.split("/").at(-1),
+    }),
   );
   writeText(
-    resolve(outputDir, 'failing-report.html'),
+    resolve(outputDir, "failing-report.html"),
     renderAttestationReport({
       attestation: failingAttestation,
       verification: failingVerification,
-      avatarFileName: avatarPath.split('/').at(-1)
-    })
+      avatarFileName: avatarPath.split("/").at(-1),
+    }),
   );
   writeText(
-    resolve(outputDir, 'index.html'),
+    resolve(outputDir, "index.html"),
     buildDemoIndex({
       passing: passingAttestation,
       failing: failingAttestation,
       passingVerification,
-      failingVerification
-    })
+      failingVerification,
+    }),
   );
 
   printSummary({
-    command: 'demo',
+    command: "demo",
     outputDir,
     passing: {
       verdict: passingVerification.verdict,
-      score: passingVerification.score
+      score: passingVerification.score,
+      bundleId: passingAttestation.inputSurface.bundleId,
     },
     failing: {
       verdict: failingVerification.verdict,
-      score: failingVerification.score
+      score: failingVerification.score,
+      bundleId: failingAttestation.inputSurface.bundleId,
     },
     files: [
       passingAttestationPath,
       failingAttestationPath,
-      resolve(outputDir, 'passing-report.html'),
-      resolve(outputDir, 'failing-report.html'),
-      resolve(outputDir, 'index.html'),
-      avatarPath
-    ]
+      resolve(outputDir, "passing-report.html"),
+      resolve(outputDir, "failing-report.html"),
+      resolve(outputDir, "index.html"),
+      avatarPath,
+    ],
   });
 }
 
@@ -200,16 +205,16 @@ function main() {
   const options = parseArgs(rest);
 
   switch (command) {
-    case 'generate':
+    case "generate":
       runGenerate(options);
       return;
-    case 'verify':
+    case "verify":
       runVerify(options);
       return;
-    case 'render':
+    case "render":
       runRender(options);
       return;
-    case 'demo':
+    case "demo":
       runDemo(options);
       return;
     default:
@@ -221,6 +226,8 @@ function main() {
 try {
   main();
 } catch (error) {
-  process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+  process.stderr.write(
+    `${error instanceof Error ? error.message : String(error)}\n`,
+  );
   process.exitCode = 1;
 }

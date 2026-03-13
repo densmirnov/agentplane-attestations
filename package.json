@@ -5,8 +5,8 @@
   "type": "module",
   "description": "Hackathon MVP for generating and verifying agent work attestations.",
   "scripts": {
-    "attest:pass": "node src/cli.mjs generate --input examples/passing-evidence.json --output artifacts/passing-attestation.json",
-    "attest:fail": "node src/cli.mjs generate --input examples/failing-evidence.json --output artifacts/failing-attestation.json",
+    "attest:pass": "node src/cli.mjs generate --input examples/passing-bundle.json --output artifacts/passing-attestation.json",
+    "attest:fail": "node src/cli.mjs generate --input examples/failing-bundle.json --output artifacts/failing-attestation.json",
     "verify:pass": "node src/cli.mjs verify --input artifacts/passing-attestation.json --expect trusted",
     "verify:fail": "node src/cli.mjs verify --input artifacts/failing-attestation.json --expect reject",
     "report:pass": "node src/cli.mjs render --input artifacts/passing-attestation.json --output artifacts/passing-report.html",

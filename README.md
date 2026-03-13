@@ -4,6 +4,8 @@
 
 The MVP builds a verifiable attestation from local execution evidence, scores its trustworthiness against explicit policy rules, and renders a lightweight demo report for hackathon walkthroughs.
 
+The canonical input surface is now an `artifact bundle`: a typed, immutable-style collection of raw artifacts from which trust claims are derived.
+
 ## Why this fits Synthesis
 
 - Theme fit: `Agents that trust`
@@ -14,7 +16,7 @@ The MVP builds a verifiable attestation from local execution evidence, scores it
 
 The current MVP is intentionally narrow:
 
-- ingest local evidence from JSON
+- ingest a canonical artifact bundle from JSON
 - generate a signed-style attestation object with stable hashes
 - verify the attestation against explicit trust policy rules
 - render a static HTML report for demo use
@@ -79,3 +81,17 @@ Generated files land in `artifacts/`:
 1. Show a passing attestation with approved scope, execution evidence, verification checks, and a Base registration anchor.
 2. Show a failing attestation with missing approval and failed checks.
 3. Explain that the product value is not logging. It is policy-backed trust adjudication that can be consumed by humans, CI, and downstream agents.
+
+## Canonical Input Format
+
+The primary ingestion path is the artifact bundle described in [docs/artifact-bundle.md](/Users/densmirnov/Desktop/synthesis-hackathon/docs/artifact-bundle.md).
+
+Machine-readable schema:
+
+- [schemas/artifact-bundle.schema.json](/Users/densmirnov/Desktop/synthesis-hackathon/schemas/artifact-bundle.schema.json)
+
+The bundle is intentionally evidence-first:
+
+- input artifacts capture observations, approvals, execution traces, verification checks, anchors, and notes
+- trust score and verdict are derived by the attestor and are not valid input artifacts
+- each artifact has its own identity, producer, timestamp, subject reference, and payload

@@ -1,0 +1,148 @@
+{
+  "schemaVersion": "1.0.0",
+  "bundleId": "bundle-failing-demo",
+  "subject": {
+    "kind": "agent",
+    "agentId": "agentplane",
+    "displayName": "agentplane",
+    "harness": "codex-cli",
+    "model": "gpt-5",
+    "operator": {
+      "kind": "human",
+      "id": "densmirnov",
+      "displayName": "Denis Smirnov"
+    }
+  },
+  "context": {
+    "project": {
+      "name": "agentplane Attestations",
+      "theme": "Agents that trust",
+      "problem": "Humans and downstream agents need a portable way to decide whether agent output is trustworthy."
+    },
+    "task": {
+      "id": "demo-negative-path",
+      "title": "Attempt attestation without trust prerequisites"
+    },
+    "source": {
+      "repo": "synthesis-hackathon",
+      "branch": "main",
+      "commit": null
+    }
+  },
+  "artifacts": [
+    {
+      "artifactId": "intent-1",
+      "kind": "intent",
+      "generatedAt": "2026-03-13T10:40:00.000Z",
+      "producer": {
+        "kind": "agent",
+        "id": "agentplane",
+        "displayName": "agentplane"
+      },
+      "subjectRef": {
+        "kind": "task",
+        "id": "demo-negative-path"
+      },
+      "mediaType": "application/json",
+      "payload": {
+        "summary": "Show that missing approval and failed checks downgrade trust.",
+        "scope": [
+          "negative-path"
+        ],
+        "requestedOutcome": "Demonstrate policy rejection."
+      }
+    },
+    {
+      "artifactId": "approval-1",
+      "kind": "approval",
+      "generatedAt": "2026-03-13T10:40:30.000Z",
+      "producer": {
+        "kind": "human",
+        "id": "densmirnov",
+        "displayName": "Denis Smirnov"
+      },
+      "subjectRef": {
+        "kind": "task",
+        "id": "demo-negative-path"
+      },
+      "mediaType": "application/json",
+      "payload": {
+        "status": "missing",
+        "rationale": "No approval was granted."
+      }
+    },
+    {
+      "artifactId": "execution-1",
+      "kind": "execution",
+      "generatedAt": "2026-03-13T10:41:00.000Z",
+      "producer": {
+        "kind": "agent",
+        "id": "agentplane",
+        "displayName": "agentplane"
+      },
+      "subjectRef": {
+        "kind": "task",
+        "id": "demo-negative-path"
+      },
+      "mediaType": "application/json",
+      "payload": {
+        "repo": "synthesis-hackathon",
+        "branch": "main",
+        "commit": null,
+        "filesChanged": [],
+        "diffStat": {
+          "added": 0,
+          "deleted": 0
+        }
+      }
+    },
+    {
+      "artifactId": "verification-1",
+      "kind": "verification",
+      "generatedAt": "2026-03-13T10:41:30.000Z",
+      "producer": {
+        "kind": "ci",
+        "id": "local-node-test",
+        "displayName": "local-node-test"
+      },
+      "subjectRef": {
+        "kind": "task",
+        "id": "demo-negative-path"
+      },
+      "mediaType": "application/json",
+      "payload": {
+        "conversationLogAttached": false,
+        "checks": [
+          {
+            "name": "Generate failing attestation",
+            "required": true,
+            "status": "fail"
+          },
+          {
+            "name": "Verify failing attestation",
+            "required": true,
+            "status": "fail"
+          }
+        ]
+      }
+    },
+    {
+      "artifactId": "note-1",
+      "kind": "note",
+      "generatedAt": "2026-03-13T10:42:00.000Z",
+      "producer": {
+        "kind": "agent",
+        "id": "agentplane",
+        "displayName": "agentplane"
+      },
+      "subjectRef": {
+        "kind": "task",
+        "id": "demo-negative-path"
+      },
+      "mediaType": "text/plain",
+      "payload": {
+        "text": "This sample represents the negative path."
+      }
+    }
+  ]
+}
