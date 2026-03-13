@@ -1,7 +1,8 @@
 ---
 id: "202603131622-NAARTQ"
 title: "Align Devfolio copy with current Synthesis skill snapshot"
-status: "DOING"
+result_summary: "Devfolio submission copy now reflects the current Synthesis source basis and gives a precise, non-misleading stack disclosure path for submission-time metadata."
+status: "DONE"
 priority: "med"
 owner: "DOCS"
 depends_on: []
@@ -14,15 +15,20 @@ plan_approval:
   updated_by: "ORCHESTRATOR"
   note: null
 verification:
-  state: "pending"
-  updated_at: null
-  updated_by: null
-  note: null
-commit: null
+  state: "ok"
+  updated_at: "2026-03-13T16:24:31.704Z"
+  updated_by: "DOCS"
+  note: "Verified: aligned the Devfolio copy with the current local Synthesis skill snapshot, added an explicit submissionMetadata note, and clarified the difference between the primary build stack and the openclaw reference adapter."
+commit:
+  hash: "aa5042d0229c0b87dda4f25aa43ff91b7dbe3956"
+  message: "📝 docs: align Devfolio copy with current skill snapshot"
 comments:
   -
     author: "DOCS"
     body: "Start: revise the Devfolio copy so it cites the current local Synthesis skill snapshot, explains submissionMetadata correctly, and distinguishes the primary codex-cli build stack from the reference openclaw adapter."
+  -
+    author: "DOCS"
+    body: "Verified: updated DEVFOLIO.md to cite the current local Synthesis skill snapshot, document submissionMetadata as the canonical stack-disclosure surface, and distinguish the primary codex-cli build stack from the reference openclaw adapter."
 events:
   -
     type: "status"
@@ -31,8 +37,21 @@ events:
     from: "TODO"
     to: "DOING"
     note: "Start: revise the Devfolio copy so it cites the current local Synthesis skill snapshot, explains submissionMetadata correctly, and distinguishes the primary codex-cli build stack from the reference openclaw adapter."
+  -
+    type: "verify"
+    at: "2026-03-13T16:24:31.704Z"
+    author: "DOCS"
+    state: "ok"
+    note: "Verified: aligned the Devfolio copy with the current local Synthesis skill snapshot, added an explicit submissionMetadata note, and clarified the difference between the primary build stack and the openclaw reference adapter."
+  -
+    type: "status"
+    at: "2026-03-13T16:24:40.513Z"
+    author: "DOCS"
+    from: "DOING"
+    to: "DONE"
+    note: "Verified: updated DEVFOLIO.md to cite the current local Synthesis skill snapshot, document submissionMetadata as the canonical stack-disclosure surface, and distinguish the primary codex-cli build stack from the reference openclaw adapter."
 doc_version: 3
-doc_updated_at: "2026-03-13T16:23:04.599Z"
+doc_updated_at: "2026-03-13T16:24:40.514Z"
 doc_updated_by: "DOCS"
 description: "Update DEVFOLIO.md to reference the current Synthesis skill snapshot instead of old page assumptions and add a precise submissionMetadata note for actual harness and model disclosure."
 id_source: "generated"
@@ -75,6 +94,15 @@ Update DEVFOLIO.md to reference the current Synthesis skill snapshot instead of 
 - `node .agentplane/policy/check-routing.mjs`
   - Result: pass
   - Evidence: `policy routing OK`
+
+#### 2026-03-13T16:24:31.704Z — VERIFY — ok
+
+By: DOCS
+
+Note: Verified: aligned the Devfolio copy with the current local Synthesis skill snapshot, added an explicit submissionMetadata note, and clarified the difference between the primary build stack and the openclaw reference adapter.
+
+VerifyStepsRef: doc_version=3, doc_updated_at=2026-03-13T16:23:04.599Z, excerpt_hash=sha256:0e98131a95115dd00a5461bd6e69779d54228c645ce8907898a8acb91e0bdf49
+
 <!-- END VERIFICATION RESULTS -->
 
 ## Rollback Plan
