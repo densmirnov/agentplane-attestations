@@ -1,7 +1,8 @@
 ---
 id: "202603131526-KRGP94"
 title: "Assemble submission evidence pack"
-status: "DOING"
+result_summary: "Added SUBMISSION.md and docs/conversation-log.md so judging materials, reproducibility commands, on-chain evidence, and collaboration traceability can be assembled from repository artifacts without guesswork."
+status: "DONE"
 priority: "med"
 owner: "DOCS"
 depends_on: []
@@ -18,11 +19,16 @@ verification:
   updated_at: "2026-03-13T15:30:06.087Z"
   updated_by: "DOCS"
   note: "Command: sed -n '1,260p' SUBMISSION.md | Result: pass | Evidence: submission pack contains problem, architecture, on-chain evidence, judge asset map, repro commands, and checklist. Scope: primary submission entrypoint. Command: sed -n '1,320p' docs/conversation-log.md | Result: pass | Evidence: conversation log doc maps tasks, README evidence, and commits into a single reference path. Scope: collaboration evidence. Command: rg -n \"One-line summary|Architecture Summary|On-Chain Evidence|Judge Asset Map|Repro Commands|Repo Hygiene Checklist|Suggested Submission Framing|Canonical Timeline|Suggested ConversationLog Reference\" SUBMISSION.md docs/conversation-log.md | Result: pass | Evidence: all required submission-pack sections were found. Scope: structural completeness. Command: agentplane doctor | Result: pass | Evidence: ok true with findings 0. Scope: workflow health. Command: node .agentplane/policy/check-routing.mjs | Result: pass | Evidence: policy routing OK. Scope: policy validation."
-commit: null
+commit:
+  hash: "82aeb2dd557a7492460bd87af6a2de44862940fb"
+  message: "📝 submission: add evidence pack"
 comments:
   -
     author: "DOCS"
     body: "Start: assembling a submission-ready evidence pack with a single submission summary, explicit conversation-log evidence map, and reproducible demo/judging asset checklist based on shipped behavior."
+  -
+    author: "DOCS"
+    body: "Verified: assembled a submission-ready evidence pack with a single judging entrypoint, an explicit conversation-log evidence map, and a repo-state checklist aligned with shipped behavior."
 events:
   -
     type: "status"
@@ -37,8 +43,15 @@ events:
     author: "DOCS"
     state: "ok"
     note: "Command: sed -n '1,260p' SUBMISSION.md | Result: pass | Evidence: submission pack contains problem, architecture, on-chain evidence, judge asset map, repro commands, and checklist. Scope: primary submission entrypoint. Command: sed -n '1,320p' docs/conversation-log.md | Result: pass | Evidence: conversation log doc maps tasks, README evidence, and commits into a single reference path. Scope: collaboration evidence. Command: rg -n \"One-line summary|Architecture Summary|On-Chain Evidence|Judge Asset Map|Repro Commands|Repo Hygiene Checklist|Suggested Submission Framing|Canonical Timeline|Suggested ConversationLog Reference\" SUBMISSION.md docs/conversation-log.md | Result: pass | Evidence: all required submission-pack sections were found. Scope: structural completeness. Command: agentplane doctor | Result: pass | Evidence: ok true with findings 0. Scope: workflow health. Command: node .agentplane/policy/check-routing.mjs | Result: pass | Evidence: policy routing OK. Scope: policy validation."
+  -
+    type: "status"
+    at: "2026-03-13T15:30:43.211Z"
+    author: "DOCS"
+    from: "DOING"
+    to: "DONE"
+    note: "Verified: assembled a submission-ready evidence pack with a single judging entrypoint, an explicit conversation-log evidence map, and a repo-state checklist aligned with shipped behavior."
 doc_version: 3
-doc_updated_at: "2026-03-13T15:30:06.089Z"
+doc_updated_at: "2026-03-13T15:30:43.212Z"
 doc_updated_by: "DOCS"
 description: "Package the shipped demo, architecture summary, conversation evidence path, and repo hygiene checklist into submission-ready repository artifacts."
 id_source: "generated"
