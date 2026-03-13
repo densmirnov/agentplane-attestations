@@ -1,7 +1,8 @@
 ---
 id: "202603131050-42STD0"
 title: "Extract real agentplane task lifecycle into attestation inputs"
-status: "DOING"
+result_summary: "Implemented a real agentplane task extractor, CLI extraction path, task-driven bundle generation, provenance locators, and regression coverage for the real-task attestation flow."
+status: "DONE"
 priority: "med"
 owner: "CODER"
 depends_on: []
@@ -18,11 +19,16 @@ verification:
   updated_at: "2026-03-13T11:08:44.054Z"
   updated_by: "CODER"
   note: "The repository now extracts real completed agentplane tasks into runtime snapshots, adapts them into canonical bundles, and produces trusted attestations from actual task and git evidence without regressing the fixture-driven demo path."
-commit: null
+commit:
+  hash: "881d0b1a84847643e4a9a8f04c402487281f1207"
+  message: "✨ 42STD0 task: extract real task attestations from agentplane lifecycle"
 comments:
   -
     author: "CODER"
     body: "Start: extract a real agentplane task into a runtime snapshot, wire it into the adapter pipeline, and replace fixture-only provenance with task-backed evidence."
+  -
+    author: "CODER"
+    body: "Verified: real agentplane tasks now extract into runtime snapshots, adapt into canonical bundles, and produce trusted attestations from task and git evidence while the fixture-driven demo path remains intact."
 events:
   -
     type: "status"
@@ -37,8 +43,15 @@ events:
     author: "CODER"
     state: "ok"
     note: "The repository now extracts real completed agentplane tasks into runtime snapshots, adapts them into canonical bundles, and produces trusted attestations from actual task and git evidence without regressing the fixture-driven demo path."
+  -
+    type: "status"
+    at: "2026-03-13T11:09:26.039Z"
+    author: "CODER"
+    from: "DOING"
+    to: "DONE"
+    note: "Verified: real agentplane tasks now extract into runtime snapshots, adapt into canonical bundles, and produce trusted attestations from task and git evidence while the fixture-driven demo path remains intact."
 doc_version: 3
-doc_updated_at: "2026-03-13T11:08:44.055Z"
+doc_updated_at: "2026-03-13T11:09:26.040Z"
 doc_updated_by: "CODER"
 description: "Build a real extractor that reads agentplane task artifacts from .agentplane/tasks/<id>/README.md plus git commit metadata, emits an agentplane runtime snapshot, and feeds it through the existing adapter and attestation pipeline."
 id_source: "generated"
