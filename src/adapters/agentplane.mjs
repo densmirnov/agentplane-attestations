@@ -120,6 +120,22 @@ function agentProducer(snapshot) {
   };
 }
 
+function listApprovalDecisions(snapshot) {
+  if (Array.isArray(snapshot.approvals?.decisions)) {
+    return snapshot.approvals.decisions;
+  }
+
+  if (snapshot.approvals?.primary) {
+    return [snapshot.approvals.primary];
+  }
+
+  if (snapshot.approvals?.human) {
+    return [snapshot.approvals.human];
+  }
+
+  return [];
+}
+
 export const agentplaneAdapter = defineRuntimeAdapter({
   adapterId: "agentplane",
   runtime: "agentplane",
@@ -149,26 +165,18 @@ export const agentplaneAdapter = defineRuntimeAdapter({
       }),
     );
 
-    if (snapshot.approvals?.human) {
+    for (const [index, approval] of listApprovalDecisions(snapshot).entries()) {
       artifacts.push(
         createAdapterArtifact({
-          artifactId: "approval-1",
+          artifactId: `approval-${index + 1}`,
           kind: "approval",
-          generatedAt:
-            snapshot.approvals.human.generatedAt ?? snapshot.task.generatedAt,
-          producer: ensureActor(
-            snapshot.approvals.human.actor,
-            "approvals.human.actor",
-          ),
+          generatedAt: approval.generatedAt ?? snapshot.task.generatedAt,
+          producer: ensureActor(approval.actor, `approvals[${index}].actor`),
           subjectRef: taskRef(snapshot),
-          ...(snapshot.approvals.human.locator
-            ? { locator: snapshot.approvals.human.locator }
-            : {}),
+          ...(approval.locator ? { locator: approval.locator } : {}),
           payload: {
-            status: snapshot.approvals.human.status,
-            ...(snapshot.approvals.human.rationale
-              ? { rationale: snapshot.approvals.human.rationale }
-              : {}),
+            status: approval.status,
+            ...(approval.rationale ? { rationale: approval.rationale } : {}),
           },
         }),
       );

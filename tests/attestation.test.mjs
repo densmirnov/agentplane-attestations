@@ -8,7 +8,10 @@ import {
   createAttestation,
   verifyAttestation,
 } from "../src/lib/attestation.mjs";
-import { validateArtifactBundle } from "../src/lib/artifact-bundle.mjs";
+import {
+  normalizeArtifactBundle,
+  validateArtifactBundle,
+} from "../src/lib/artifact-bundle.mjs";
 import { adaptRuntimeSnapshot } from "../src/lib/runtime-adapter.mjs";
 
 function loadJson(filePath) {
@@ -127,6 +130,39 @@ test("agentplane adapter path generates a trusted attestation", () => {
   assert.equal(verification.verdict, "trusted");
 });
 
+test("policy approval artifacts can still produce a trusted attestation", () => {
+  const bundle = loadJson("../examples/passing-bundle.json");
+  bundle.artifacts = bundle.artifacts.map((artifact) =>
+    artifact.kind === "approval"
+      ? {
+          ...artifact,
+          producer: {
+            kind: "policy",
+            id: "ORCHESTRATOR",
+            displayName: "ORCHESTRATOR",
+          },
+        }
+      : artifact,
+  );
+
+  const attestation = createAttestation(bundle);
+  const verification = verifyAttestation(attestation);
+
+  assert.equal(verification.verdict, "trusted");
+  assert.equal(attestation.claims.approvedDecisionAttached, true);
+  assert.equal(attestation.claims.humanSignoffAttached, false);
+});
+
+test("bundle normalization preserves approval actor semantics", () => {
+  const bundle = loadJson("../examples/passing-bundle.json");
+  const { evidence } = normalizeArtifactBundle(bundle);
+
+  assert.equal(evidence.approvals.primary.status, "approved");
+  assert.equal(evidence.approvals.primary.actorKind, "human");
+  assert.equal(evidence.approvals.humanSignoff.actorKind, "human");
+  assert.equal(evidence.task.approvalActorKind, "human");
+});
+
 test("real agentplane task extractor emits a trusted runtime snapshot", () => {
   const snapshot = extractAgentplaneTaskSnapshot({
     taskId: "202603131024-THDVQ1",
@@ -142,7 +178,9 @@ test("real agentplane task extractor emits a trusted runtime snapshot", () => {
     snapshot.execution.filesChanged.includes("src/adapters/agentplane.mjs"),
   );
   assert.ok(snapshot.verification.checks.length >= 4);
-  assert.equal(snapshot.approvals.human.status, "approved");
+  assert.equal(snapshot.approvals.primary.status, "approved");
+  assert.equal(snapshot.approvals.primary.actor.kind, "policy");
+  assert.equal(snapshot.approvals.primary.actor.id, "ORCHESTRATOR");
   assert.equal(snapshot.conversation.attached, true);
 });
 
@@ -157,6 +195,8 @@ test("real agentplane task path generates a trusted attestation", () => {
 
   assert.equal(verification.verdict, "trusted");
   assert.equal(attestation.inputSurface.adapter.adapterId, "agentplane");
+  assert.equal(attestation.claims.approvedDecisionAttached, true);
+  assert.equal(attestation.claims.humanSignoffAttached, false);
   assert.equal(
     attestation.inputSurface.bundleId,
     "agentplane-task-202603131024-THDVQ1",

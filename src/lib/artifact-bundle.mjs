@@ -30,6 +30,48 @@ function latestArtifact(artifacts, kind) {
   );
 }
 
+function normalizeApprovalArtifact(artifact) {
+  return {
+    status: artifact.payload.status,
+    actorKind: artifact.producer.kind,
+    actorId: artifact.producer.id,
+    actorName: artifact.producer.displayName ?? artifact.producer.id,
+    rationale: artifact.payload.rationale ?? null,
+    observedAt: artifact.generatedAt,
+    locator: artifact.locator ?? null,
+  };
+}
+
+function normalizeApprovalArtifacts(artifacts) {
+  const decisions = artifacts
+    .filter((artifact) => artifact.kind === "approval")
+    .sort((left, right) =>
+      String(left.generatedAt).localeCompare(String(right.generatedAt)),
+    )
+    .map(normalizeApprovalArtifact);
+
+  const primary = decisions.at(-1) ?? {
+    status: "missing",
+    actorKind: null,
+    actorId: null,
+    actorName: null,
+    rationale: null,
+    observedAt: null,
+    locator: null,
+  };
+  const humanSignoff =
+    decisions.findLast(
+      (decision) =>
+        decision.actorKind === "human" && decision.status === "approved",
+    ) ?? null;
+
+  return {
+    primary,
+    decisions,
+    humanSignoff,
+  };
+}
+
 function validateActor(actor, path, errors) {
   if (!isObject(actor)) {
     errors.push(`${path} must be an object.`);
@@ -331,7 +373,9 @@ export function normalizeArtifactBundle(inputBundle) {
   }
 
   const intentArtifact = latestArtifact(bundle.artifacts, "intent");
-  const approvalArtifact = latestArtifact(bundle.artifacts, "approval");
+  const approvalArtifacts = bundle.artifacts.filter(
+    (artifact) => artifact.kind === "approval",
+  );
   const executionArtifact = latestArtifact(bundle.artifacts, "execution");
   const verificationArtifact = latestArtifact(bundle.artifacts, "verification");
   const conversationArtifact = latestArtifact(bundle.artifacts, "conversation");
@@ -339,6 +383,7 @@ export function normalizeArtifactBundle(inputBundle) {
   const noteArtifacts = bundle.artifacts.filter(
     (artifact) => artifact.kind === "note",
   );
+  const approvals = normalizeApprovalArtifacts(approvalArtifacts);
 
   const evidence = {
     meta: {
@@ -354,12 +399,10 @@ export function normalizeArtifactBundle(inputBundle) {
     task: {
       id: bundle.context.task.id,
       title: bundle.context.task.title,
-      approved: approvalArtifact?.payload.status === "approved",
-      approvedBy:
-        approvalArtifact?.producer.displayName ??
-        approvalArtifact?.producer.id ??
-        null,
-      approvedAt: approvalArtifact?.generatedAt ?? null,
+      approved: approvals.primary.status === "approved",
+      approvedBy: approvals.primary.actorName,
+      approvedAt: approvals.primary.observedAt,
+      approvalActorKind: approvals.primary.actorKind,
       summary: intentArtifact.payload.summary,
     },
     execution: normalizeExecution(bundle, executionArtifact),
@@ -371,13 +414,9 @@ export function normalizeArtifactBundle(inputBundle) {
       checks: verificationArtifact?.payload.checks ?? [],
     },
     approvals: {
-      human: {
-        status: approvalArtifact?.payload.status ?? "missing",
-        actor:
-          approvalArtifact?.producer.displayName ??
-          approvalArtifact?.producer.id ??
-          null,
-      },
+      primary: approvals.primary,
+      decisions: approvals.decisions,
+      humanSignoff: approvals.humanSignoff,
     },
     anchors: {
       registration: anchorArtifact

@@ -132,7 +132,7 @@ The bundle format fixes that by keeping raw artifacts independent and typed.
 The current attestation core derives a simplified evidence view from the bundle:
 
 - latest `intent` artifact -> task summary
-- latest `approval` artifact -> approval status
+- approval artifacts -> `task.approved`, `approvals.primary`, `approvals.decisions`, and optional `approvals.humanSignoff`
 - latest `execution` artifact -> repo/branch/commit/files
 - latest `verification` artifact -> checks
 - latest `conversation` artifact -> conversation log availability
@@ -140,3 +140,21 @@ The current attestation core derives a simplified evidence view from the bundle:
 - `note` artifacts -> notes array
 
 This is an implementation choice, not a schema law. Other attestors can derive a different internal view from the same bundle.
+
+## Approval semantics
+
+Approval is evidence-first.
+
+That means:
+
+1. the input artifact records who made the decision and what the status was
+2. the attestor may derive trust from that decision
+3. the attestor must not silently rewrite a policy or system decision into a human decision
+
+The current normalization model therefore keeps:
+
+- the primary observed approval decision
+- the full list of approval decisions in the bundle
+- an optional derived `humanSignoff` convenience field when a human approved decision is present
+
+This lets runtimes keep their real actor model while still supporting downstream trust policy.

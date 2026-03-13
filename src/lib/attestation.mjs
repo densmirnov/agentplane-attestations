@@ -1,4 +1,5 @@
 import { canonicalize, canonicalStringify } from "./canonical-json.mjs";
+import { hasApprovedDecision, hasHumanSignoff } from "./approval-decision.mjs";
 import { sha256Hex } from "./hash.mjs";
 import { normalizeAttestationInput } from "./artifact-bundle.mjs";
 import { evaluateTrust } from "./policy.mjs";
@@ -9,7 +10,8 @@ function makeClaims(evidence) {
 
   return {
     scopeApproved: evidence?.task?.approved === true,
-    humanApproved: evidence?.approvals?.human?.status === "approved",
+    approvedDecisionAttached: hasApprovedDecision(evidence?.approvals),
+    humanSignoffAttached: hasHumanSignoff(evidence?.approvals),
     executionObserved: Boolean(
       evidence?.execution?.repo && evidence?.execution?.branch,
     ),

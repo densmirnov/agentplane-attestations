@@ -203,7 +203,9 @@ function parseVerificationChecks(sectionText, verificationState) {
       currentBlock.Command ??
       currentBlock.Skipped ??
       `verification-check-${checks.length + 1}`;
-    const result = String(currentBlock.Result ?? "").trim().toLowerCase();
+    const result = String(currentBlock.Result ?? "")
+      .trim()
+      .toLowerCase();
     const status = currentBlock.Skipped
       ? "skip"
       : result === "pass"
@@ -293,6 +295,31 @@ function normalizeApprovalState(state) {
   return "missing";
 }
 
+function buildObservedApprovalActor(metadata, profile) {
+  const updatedBy = metadata.plan_approval?.updated_by;
+  if (
+    isNonEmptyString(updatedBy) &&
+    profile.approvalActors &&
+    profile.approvalActors[updatedBy]
+  ) {
+    return profile.approvalActors[updatedBy];
+  }
+
+  if (isNonEmptyString(updatedBy)) {
+    return {
+      kind: "system",
+      id: updatedBy,
+      displayName: updatedBy,
+    };
+  }
+
+  return {
+    kind: "system",
+    id: "agentplane-approval",
+    displayName: "agentplane approval",
+  };
+}
+
 function buildApprovalRationale(metadata) {
   if (!isNonEmptyString(metadata.plan_approval?.updated_by)) {
     return "No explicit plan approval route was recorded.";
@@ -307,12 +334,7 @@ function buildConversationSummary(metadata) {
   return `Task history captured ${commentCount} comments and ${eventCount} events in agentplane task artifacts.`;
 }
 
-function buildNotes({
-  metadata,
-  sections,
-  readmeLocatorPath,
-  subject,
-}) {
+function buildNotes({ metadata, sections, readmeLocatorPath, subject }) {
   const producer = {
     kind: "agent",
     id: subject.agentId,
@@ -400,6 +422,20 @@ export function extractAgentplaneTaskSnapshot({
   );
   const conversationAttached =
     (metadata.comments?.length ?? 0) > 0 || (metadata.events?.length ?? 0) > 0;
+  const primaryApproval = {
+    status: normalizeApprovalState(metadata.plan_approval?.state),
+    generatedAt:
+      metadata.plan_approval?.updated_at ??
+      metadata.doc_updated_at ??
+      taskGeneratedAt,
+    actor: buildObservedApprovalActor(metadata, profile),
+    rationale: buildApprovalRationale(metadata),
+    locator: {
+      type: "agentplane-frontmatter",
+      path: readmeLocatorPath,
+      field: "plan_approval",
+    },
+  };
 
   return canonicalize({
     runtime: "agentplane",
@@ -428,24 +464,14 @@ export function extractAgentplaneTaskSnapshot({
         : {}),
     },
     approvals: {
-      human: {
-        status: normalizeApprovalState(metadata.plan_approval?.state),
-        generatedAt:
-          metadata.plan_approval?.updated_at ??
-          metadata.doc_updated_at ??
-          taskGeneratedAt,
-        actor: profile.approver ?? profile.subject.operator,
-        rationale: buildApprovalRationale(metadata),
-        locator: {
-          type: "agentplane-frontmatter",
-          path: readmeLocatorPath,
-          field: "plan_approval",
-        },
-      },
+      primary: primaryApproval,
+      decisions: [primaryApproval],
     },
     execution: {
       generatedAt:
-        commitMetadata?.authoredAt ?? metadata.doc_updated_at ?? taskGeneratedAt,
+        commitMetadata?.authoredAt ??
+        metadata.doc_updated_at ??
+        taskGeneratedAt,
       producer: {
         kind: "agent",
         id: profile.subject.agentId,

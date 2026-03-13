@@ -1,17 +1,19 @@
+import { hasApprovedDecision, hasHumanSignoff } from "./approval-decision.mjs";
+
 function hasExecutionProof(execution) {
   return Boolean(execution?.repo && execution?.branch && execution?.commit);
 }
 
 function hasChangedFiles(execution) {
-  return Array.isArray(execution?.filesChanged) && execution.filesChanged.length > 0;
-}
-
-function hasHumanApproval(approvals) {
-  return approvals?.human?.status === 'approved';
+  return (
+    Array.isArray(execution?.filesChanged) && execution.filesChanged.length > 0
+  );
 }
 
 function hasRegistrationAnchor(anchors) {
-  return Boolean(anchors?.registration?.txUrl && anchors?.registration?.chain === 'Base');
+  return Boolean(
+    anchors?.registration?.txUrl && anchors?.registration?.chain === "Base",
+  );
 }
 
 function getRequiredChecks(checks) {
@@ -20,7 +22,10 @@ function getRequiredChecks(checks) {
 
 function allRequiredChecksPass(checks) {
   const requiredChecks = getRequiredChecks(checks);
-  return requiredChecks.length > 0 && requiredChecks.every((check) => check.status === 'pass');
+  return (
+    requiredChecks.length > 0 &&
+    requiredChecks.every((check) => check.status === "pass")
+  );
 }
 
 function hasConversationLog(verification) {
@@ -34,69 +39,73 @@ export function evaluateTrust(evidence) {
 
   if (evidence?.task?.approved) {
     score += 20;
-    reasons.push('Approved scope is present.');
+    reasons.push("Approved scope is present.");
   } else {
-    warnings.push('Missing approved scope.');
+    warnings.push("Missing approved scope.");
   }
 
-  if (hasHumanApproval(evidence?.approvals)) {
+  if (hasApprovedDecision(evidence?.approvals)) {
     score += 10;
-    reasons.push('Human approval is attached.');
+    reasons.push("An approved decision is attached.");
   } else {
-    warnings.push('Human approval is missing.');
+    warnings.push("No approved decision is attached.");
+  }
+
+  if (hasHumanSignoff(evidence?.approvals)) {
+    reasons.push("Human signoff is attached.");
   }
 
   if (hasExecutionProof(evidence?.execution)) {
     score += 15;
-    reasons.push('Execution proof includes repo, branch, and commit.');
+    reasons.push("Execution proof includes repo, branch, and commit.");
   } else {
-    warnings.push('Execution proof is incomplete.');
+    warnings.push("Execution proof is incomplete.");
   }
 
   if (hasChangedFiles(evidence?.execution)) {
     score += 10;
-    reasons.push('Changed files are listed.');
+    reasons.push("Changed files are listed.");
   } else {
-    warnings.push('No changed files were captured.');
+    warnings.push("No changed files were captured.");
   }
 
   if (allRequiredChecksPass(evidence?.verification?.checks)) {
     score += 25;
-    reasons.push('All required verification checks passed.');
+    reasons.push("All required verification checks passed.");
   } else {
-    warnings.push('One or more required verification checks failed.');
+    warnings.push("One or more required verification checks failed.");
   }
 
   if (hasConversationLog(evidence?.verification)) {
     score += 10;
-    reasons.push('Conversation log is attached.');
+    reasons.push("Conversation log is attached.");
   } else {
-    warnings.push('Conversation log is missing.');
+    warnings.push("Conversation log is missing.");
   }
 
   if (hasRegistrationAnchor(evidence?.anchors)) {
     score += 10;
-    reasons.push('A Base anchor is present.');
+    reasons.push("A Base anchor is present.");
   } else {
-    warnings.push('No Base anchor is present.');
+    warnings.push("No Base anchor is present.");
   }
 
   const hardFailure =
     !evidence?.task?.approved ||
-    !hasHumanApproval(evidence?.approvals) ||
+    !hasApprovedDecision(evidence?.approvals) ||
     !allRequiredChecksPass(evidence?.verification?.checks);
 
-  let verdict = 'reject';
+  let verdict = "reject";
   if (!hardFailure && score >= 80) {
-    verdict = 'trusted';
+    verdict = "trusted";
   } else if (!hardFailure && score >= 55) {
-    verdict = 'caution';
+    verdict = "caution";
   }
 
   return {
     score,
     verdict,
     reasons,
-    warnings
+    warnings,
   };
 }

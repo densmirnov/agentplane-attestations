@@ -42,10 +42,12 @@ export const DEFAULT_AGENTPLANE_PROFILE = Object.freeze({
     problem:
       "Humans and downstream agents need a portable way to decide whether agent output is trustworthy.",
   },
-  approver: {
-    kind: "human",
-    id: "densmirnov",
-    displayName: "Denis Smirnov",
+  approvalActors: {
+    ORCHESTRATOR: {
+      kind: "policy",
+      id: "ORCHESTRATOR",
+      displayName: "ORCHESTRATOR",
+    },
   },
   verificationProducer: {
     kind: "system",
