@@ -1,7 +1,8 @@
 ---
 id: "202603131548-841XQC"
 title: "Add submission freeze manifest and release flow"
-status: "DOING"
+result_summary: "Submission packaging is now reproducible from one command with explicit manifest metadata, hashed files, and honest handling of regenerated versus frozen trust evidence."
+status: "DONE"
 priority: "med"
 owner: "CODER"
 depends_on: []
@@ -14,15 +15,20 @@ plan_approval:
   updated_by: "ORCHESTRATOR"
   note: null
 verification:
-  state: "pending"
-  updated_at: null
-  updated_by: null
-  note: null
-commit: null
+  state: "ok"
+  updated_at: "2026-03-13T15:55:15.934Z"
+  updated_by: "CODER"
+  note: "Verified: the submission freeze flow rebuilds demo assets, snapshots submission docs, writes a hash manifest, and passes regression plus policy checks."
+commit:
+  hash: "6cad33bcbda46be0d10f0a6bdacdfd8c271e3f39"
+  message: "🧊 release: add submission freeze flow"
 comments:
   -
     author: "CODER"
     body: "Start: implement a canonical submission freeze flow that rebuilds the demo, snapshots final docs, and emits a manifest with hashes and anchor state without adding external deployment or submission dependencies."
+  -
+    author: "CODER"
+    body: "Verified: added a canonical freeze command that rebuilds final artifacts, snapshots submission-facing docs, records hash manifests, and fails closed on mismatched attestation-anchor pairs."
 events:
   -
     type: "status"
@@ -31,8 +37,21 @@ events:
     from: "TODO"
     to: "DOING"
     note: "Start: implement a canonical submission freeze flow that rebuilds the demo, snapshots final docs, and emits a manifest with hashes and anchor state without adding external deployment or submission dependencies."
+  -
+    type: "verify"
+    at: "2026-03-13T15:55:15.934Z"
+    author: "CODER"
+    state: "ok"
+    note: "Verified: the submission freeze flow rebuilds demo assets, snapshots submission docs, writes a hash manifest, and passes regression plus policy checks."
+  -
+    type: "status"
+    at: "2026-03-13T15:55:21.947Z"
+    author: "CODER"
+    from: "DOING"
+    to: "DONE"
+    note: "Verified: added a canonical freeze command that rebuilds final artifacts, snapshots submission-facing docs, records hash manifests, and fails closed on mismatched attestation-anchor pairs."
 doc_version: 3
-doc_updated_at: "2026-03-13T15:49:14.988Z"
+doc_updated_at: "2026-03-13T15:55:21.949Z"
 doc_updated_by: "CODER"
 description: "Implement a submission freeze command that rebuilds demo artifacts, validates key evidence, snapshots final docs, and writes a manifest with file hashes for reproducible hackathon packaging."
 id_source: "generated"
@@ -81,6 +100,15 @@ Implement a submission freeze command that rebuilds demo artifacts, validates ke
 - `node .agentplane/policy/check-routing.mjs`
   - Result: pass
   - Evidence: `policy routing OK`
+
+#### 2026-03-13T15:55:15.934Z — VERIFY — ok
+
+By: CODER
+
+Note: Verified: the submission freeze flow rebuilds demo assets, snapshots submission docs, writes a hash manifest, and passes regression plus policy checks.
+
+VerifyStepsRef: doc_version=3, doc_updated_at=2026-03-13T15:49:14.988Z, excerpt_hash=sha256:700ab7c54484437facd09cf04b77dbc336fee4172c4dad56765483578465c9e6
+
 <!-- END VERIFICATION RESULTS -->
 
 ## Rollback Plan
