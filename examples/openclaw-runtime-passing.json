@@ -1,0 +1,119 @@
+{
+  "runtime": "openclaw",
+  "runtimeVersion": "0.1.0-reference",
+  "bundleId": "openclaw-reference-passing",
+  "agent": {
+    "agentId": "openclaw",
+    "displayName": "OpenClaw",
+    "harness": "openclaw-cli",
+    "model": "runtime-managed",
+    "operator": {
+      "kind": "human",
+      "id": "densmirnov",
+      "displayName": "Denis Smirnov"
+    }
+  },
+  "program": {
+    "name": "Universal Agent Attestations",
+    "theme": "Agents that trust",
+    "problem": "Third-party runtimes need a portable trust contract without inheriting agentplane internals."
+  },
+  "run": {
+    "id": "oc-run-101",
+    "title": "Ship interoperable trust export",
+    "openedAt": "2026-03-13T15:40:00.000Z",
+    "objective": "Emit a canonical attestation bundle from an OpenClaw run without depending on agentplane internals.",
+    "scope": [
+      "adapter",
+      "bundle",
+      "verification"
+    ],
+    "requestedOutcome": "Produce a trusted attestation from a non-agentplane runtime snapshot.",
+    "locator": "openclaw://runs/oc-run-101"
+  },
+  "review": {
+    "decisions": [
+      {
+        "status": "approved",
+        "decidedAt": "2026-03-13T15:41:00.000Z",
+        "actor": {
+          "kind": "policy",
+          "id": "openclaw-review-gate",
+          "displayName": "OpenClaw Review Gate"
+        },
+        "rationale": "Required runtime review gates passed before export.",
+        "locator": "openclaw://runs/oc-run-101/review/1"
+      }
+    ]
+  },
+  "delivery": {
+    "producedAt": "2026-03-13T15:48:00.000Z",
+    "producer": {
+      "kind": "agent",
+      "id": "openclaw",
+      "displayName": "OpenClaw"
+    },
+    "repo": "synthesis-hackathon",
+    "branch": "main",
+    "commit": "openclaw-demo-passing",
+    "filesChanged": [
+      "src/adapters/openclaw.mjs",
+      "docs/runtime-interoperability-profile.md"
+    ],
+    "diffStat": {
+      "added": 182,
+      "deleted": 6
+    },
+    "locator": "openclaw://runs/oc-run-101/delivery"
+  },
+  "validation": {
+    "producedAt": "2026-03-13T15:49:30.000Z",
+    "producer": {
+      "kind": "ci",
+      "id": "openclaw-validation",
+      "displayName": "OpenClaw Validation"
+    },
+    "conversationLogAttached": true,
+    "checks": [
+      {
+        "name": "adapter-export",
+        "required": true,
+        "status": "pass"
+      },
+      {
+        "name": "bundle-validation",
+        "required": true,
+        "status": "pass"
+      },
+      {
+        "name": "attestation-verification",
+        "required": true,
+        "status": "pass"
+      }
+    ],
+    "locator": "openclaw://runs/oc-run-101/validation"
+  },
+  "transcript": {
+    "producedAt": "2026-03-13T15:49:45.000Z",
+    "producer": {
+      "kind": "system",
+      "id": "openclaw-audit",
+      "displayName": "OpenClaw Audit"
+    },
+    "attached": true,
+    "uri": "openclaw://runs/oc-run-101/transcript",
+    "summary": "Reference transcript is available from the runtime audit trail.",
+    "locator": "openclaw://runs/oc-run-101/transcript"
+  },
+  "annotations": [
+    {
+      "generatedAt": "2026-03-13T15:50:00.000Z",
+      "producer": {
+        "kind": "agent",
+        "id": "openclaw",
+        "displayName": "OpenClaw"
+      },
+      "text": "This fixture proves the universal attestation contract can accept a non-agentplane runtime shape."
+    }
+  ]
+}

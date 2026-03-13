@@ -93,7 +93,7 @@ Acceptance criteria:
 
 ### Epic 1 — Trust Semantics Hardening
 
-Status: not started  
+Status: shipped  
 Priority: must-ship
 
 Goal:
@@ -129,7 +129,7 @@ Dependencies:
 
 ### Epic 2 — Native Agentplane Attestations
 
-Status: partially shipped  
+Status: shipped  
 Priority: must-ship
 
 Goal:
@@ -164,7 +164,7 @@ Dependencies:
 
 ### Epic 3 — On-Chain Attestation Anchor
 
-Status: not started  
+Status: shipped  
 Priority: must-ship
 
 Goal:
@@ -202,7 +202,7 @@ Dependencies:
 
 ### Epic 4 — Judge-Facing Demo Surface
 
-Status: partially shipped  
+Status: shipped  
 Priority: must-ship
 
 Goal:
@@ -239,7 +239,7 @@ Dependencies:
 
 ### Epic 5 — Submission Evidence Pack
 
-Status: not started  
+Status: shipped  
 Priority: must-ship
 
 Goal:
@@ -274,7 +274,7 @@ Dependencies:
 
 ### Epic 6 — Universal Runtime Interoperability Profile
 
-Status: not started  
+Status: shipped stretch  
 Priority: stretch
 
 Goal:

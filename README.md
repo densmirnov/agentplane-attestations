@@ -171,6 +171,8 @@ The runtime-agnostic layer is described in [docs/universal-attestation-layer.md]
 
 The adapter contract is described in [docs/runtime-adapter-contract.md](/Users/densmirnov/Desktop/synthesis-hackathon/docs/runtime-adapter-contract.md).
 
+The interoperability profile for third-party runtimes is described in [docs/runtime-interoperability-profile.md](/Users/densmirnov/Desktop/synthesis-hackathon/docs/runtime-interoperability-profile.md).
+
 The intended layering is:
 
 1. runtime-native snapshot
@@ -183,8 +185,17 @@ Built-in today:
 
 - `agentplane` adapter
 - `agentplane` task extractor for `.agentplane/tasks/<id>/README.md` plus git commit evidence
+- `openclaw` reference adapter with illustrative runtime snapshots
 
-Target for future integrations:
+Reference interoperability commands:
 
-- `openclaw`
+```bash
+node src/cli.mjs adapt --adapter openclaw --input examples/openclaw-runtime-passing.json --output artifacts/openclaw-bundle.json
+node src/cli.mjs generate --input artifacts/openclaw-bundle.json --output artifacts/openclaw-attestation.json
+node src/cli.mjs verify --input artifacts/openclaw-attestation.json --expect trusted
+```
+
+Target for future live integrations:
+
+- upstream `openclaw` export flow
 - any other agent runtime that can export enough provenance to satisfy the adapter contract

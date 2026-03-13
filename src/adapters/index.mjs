@@ -1,6 +1,10 @@
-import { agentplaneAdapter } from './agentplane.mjs';
+import { agentplaneAdapter } from "./agentplane.mjs";
+import { openclawAdapter } from "./openclaw.mjs";
 
-const adapters = new Map([[agentplaneAdapter.adapterId, agentplaneAdapter]]);
+const adapters = new Map([
+  [agentplaneAdapter.adapterId, agentplaneAdapter],
+  [openclawAdapter.adapterId, openclawAdapter],
+]);
 
 export function getRuntimeAdapter(adapterId) {
   const adapter = adapters.get(adapterId);
@@ -15,8 +19,9 @@ export function listRuntimeAdapters() {
     adapterId: adapter.adapterId,
     runtime: adapter.runtime,
     version: adapter.version,
-    description: adapter.description
+    description: adapter.description,
   }));
 }
 
 export { agentplaneAdapter };
+export { openclawAdapter };

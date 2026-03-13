@@ -8,6 +8,8 @@
     "extract:agentplane:task": "node src/cli.mjs extract --task-id 202603131024-THDVQ1 --output artifacts/extracted-runtime.json",
     "adapt:agentplane:pass": "node src/cli.mjs adapt --adapter agentplane --input examples/agentplane-runtime-passing.json --output artifacts/passing-bundle.json",
     "adapt:agentplane:fail": "node src/cli.mjs adapt --adapter agentplane --input examples/agentplane-runtime-failing.json --output artifacts/failing-bundle.json",
+    "adapt:openclaw:pass": "node src/cli.mjs adapt --adapter openclaw --input examples/openclaw-runtime-passing.json --output artifacts/openclaw-bundle.json",
+    "adapt:openclaw:fail": "node src/cli.mjs adapt --adapter openclaw --input examples/openclaw-runtime-failing.json --output artifacts/openclaw-failing-bundle.json",
     "adapt:agentplane:task": "node src/cli.mjs adapt --adapter agentplane --task-id 202603131024-THDVQ1 --output artifacts/extracted-bundle.json",
     "attest:pass": "node src/cli.mjs generate --input examples/passing-bundle.json --output artifacts/passing-attestation.json",
     "attest:fail": "node src/cli.mjs generate --input examples/failing-bundle.json --output artifacts/failing-attestation.json",

@@ -2,6 +2,8 @@
 
 The runtime adapter contract is the extension point for systems like `agentplane` or `openclaw`.
 
+For the normative portability guidance, see [docs/runtime-interoperability-profile.md](/Users/densmirnov/Desktop/synthesis-hackathon/docs/runtime-interoperability-profile.md).
+
 ## Contract
 
 Each adapter exposes:
@@ -43,9 +45,13 @@ It is not responsible for:
 
 ## Built-in reference
 
-The repository includes a first-party `agentplane` adapter and example runtime snapshots in:
+The repository includes:
 
-- [agentplane-runtime-passing.json](/Users/densmirnov/Desktop/synthesis-hackathon/examples/agentplane-runtime-passing.json)
-- [agentplane-runtime-failing.json](/Users/densmirnov/Desktop/synthesis-hackathon/examples/agentplane-runtime-failing.json)
+1. a first-party `agentplane` adapter with example runtime snapshots:
+   - [agentplane-runtime-passing.json](/Users/densmirnov/Desktop/synthesis-hackathon/examples/agentplane-runtime-passing.json)
+   - [agentplane-runtime-failing.json](/Users/densmirnov/Desktop/synthesis-hackathon/examples/agentplane-runtime-failing.json)
+2. a reference `openclaw` adapter with illustrative runtime snapshots:
+   - [openclaw-runtime-passing.json](/Users/densmirnov/Desktop/synthesis-hackathon/examples/openclaw-runtime-passing.json)
+   - [openclaw-runtime-failing.json](/Users/densmirnov/Desktop/synthesis-hackathon/examples/openclaw-runtime-failing.json)
 
-Future runtimes such as `openclaw` should implement the same contract, but with their own snapshot shape.
+Future runtimes should implement the same contract, but with their own snapshot shape and truthful evidence semantics.

@@ -134,6 +134,48 @@ test("agentplane adapter path generates a trusted attestation", () => {
   assert.equal(verification.verdict, "trusted");
 });
 
+test("openclaw adapter emits a canonical artifact bundle", () => {
+  const adapter = getRuntimeAdapter("openclaw");
+  const snapshot = loadJson("../examples/openclaw-runtime-passing.json");
+  const bundle = adaptRuntimeSnapshot({ adapter, snapshot });
+  const validation = validateArtifactBundle(bundle);
+
+  assert.equal(validation.valid, true);
+  assert.equal(bundle.adapter.adapterId, "openclaw");
+  assert.equal(bundle.adapter.runtime, "openclaw");
+  assert.ok(bundle.artifacts.some((artifact) => artifact.kind === "intent"));
+  assert.ok(bundle.artifacts.some((artifact) => artifact.kind === "approval"));
+  assert.ok(
+    bundle.artifacts.some((artifact) => artifact.subjectRef.kind === "run"),
+  );
+});
+
+test("openclaw adapter path generates a trusted attestation", () => {
+  const adapter = getRuntimeAdapter("openclaw");
+  const snapshot = loadJson("../examples/openclaw-runtime-passing.json");
+  const bundle = adaptRuntimeSnapshot({ adapter, snapshot });
+  const attestation = createAttestation(bundle);
+  const verification = verifyAttestation(attestation);
+
+  assert.equal(attestation.inputSurface.adapter.adapterId, "openclaw");
+  assert.equal(attestation.inputSurface.adapter.runtime, "openclaw");
+  assert.equal(verification.verdict, "trusted");
+  assert.equal(attestation.claims.approvedDecisionAttached, true);
+  assert.equal(attestation.claims.humanSignoffAttached, false);
+});
+
+test("openclaw failing path generates a rejected attestation", () => {
+  const adapter = getRuntimeAdapter("openclaw");
+  const snapshot = loadJson("../examples/openclaw-runtime-failing.json");
+  const bundle = adaptRuntimeSnapshot({ adapter, snapshot });
+  const attestation = createAttestation(bundle);
+  const verification = verifyAttestation(attestation);
+
+  assert.equal(attestation.inputSurface.adapter.adapterId, "openclaw");
+  assert.equal(verification.verdict, "reject");
+  assert.equal(attestation.claims.approvedDecisionAttached, false);
+});
+
 test("policy approval artifacts can still produce a trusted attestation", () => {
   const bundle = loadJson("../examples/passing-bundle.json");
   bundle.artifacts = bundle.artifacts.map((artifact) =>
@@ -294,6 +336,51 @@ test("CLI anchor command writes a prepared anchor receipt without signer secrets
   assert.equal(anchorReceipt.submission.mode, "prepared");
   assert.equal(anchorReceipt.submission.status, "not-submitted");
   assert.equal(anchorReceipt.submission.txHash, null);
+});
+
+test("CLI adapt command supports the openclaw reference adapter", () => {
+  const bundlePath = "artifacts/test-openclaw-bundle.json";
+  const attestationPath = "artifacts/test-openclaw-attestation.json";
+
+  execFileSync(
+    "node",
+    [
+      "src/cli.mjs",
+      "adapt",
+      "--adapter",
+      "openclaw",
+      "--input",
+      "examples/openclaw-runtime-passing.json",
+      "--output",
+      bundlePath,
+    ],
+    {
+      encoding: "utf8",
+    },
+  );
+
+  execFileSync(
+    "node",
+    [
+      "src/cli.mjs",
+      "generate",
+      "--input",
+      bundlePath,
+      "--output",
+      attestationPath,
+    ],
+    {
+      encoding: "utf8",
+    },
+  );
+
+  const bundle = loadJson(`../${bundlePath}`);
+  const attestation = loadJson(`../${attestationPath}`);
+  const verification = verifyAttestation(attestation);
+
+  assert.equal(bundle.adapter.adapterId, "openclaw");
+  assert.equal(attestation.inputSurface.bundleId, "openclaw-reference-passing");
+  assert.equal(verification.verdict, "trusted");
 });
 
 test("CLI demo command builds a judge-facing demo from a real completed task", () => {

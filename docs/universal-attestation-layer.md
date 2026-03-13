@@ -44,4 +44,10 @@ The repository ships one first-party adapter:
 
 - `agentplane`
 
-This is a reference implementation, not a privileged core dependency. The goal is to make future adapters look structurally similar.
+The repository also ships one interoperability reference adapter:
+
+- `openclaw`
+
+`agentplane` proves the real task-backed path. `openclaw` proves that a different runtime shape can pass through the same canonical contract.
+
+For the normative compatibility guidance, see [docs/runtime-interoperability-profile.md](/Users/densmirnov/Desktop/synthesis-hackathon/docs/runtime-interoperability-profile.md).
