@@ -55,7 +55,7 @@ Still on the trusted path, explain:
 If no signer secret is configured, say this explicitly:
 
 - the repo currently demonstrates the prepared anchor path
-- live submission is implemented but intentionally fails closed without `BASE_PRIVATE_KEY`
+- live submission is implemented but intentionally fails closed without `BASE_PRIVATE_KEY` or `BASE_DEPLOYER_PRIVATE_KEY`
 
 ### 4. Rejected path
 
@@ -81,7 +81,7 @@ It tells humans and downstream agents whether a result should be accepted, revie
 If a funded Base demo wallet is available, run:
 
 ```bash
-BASE_PRIVATE_KEY=0x... node src/cli.mjs anchor --input artifacts/trusted-attestation.json --output artifacts/trusted-anchor.json --submit
+BASE_DEPLOYER_PRIVATE_KEY=0x... node src/cli.mjs anchor --input artifacts/trusted-attestation.json --output artifacts/trusted-anchor.json --submit
 node src/cli.mjs render --input artifacts/trusted-attestation.json --anchor artifacts/trusted-anchor.json --output artifacts/trusted-report.html
 ```
 

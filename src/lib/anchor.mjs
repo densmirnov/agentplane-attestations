@@ -37,6 +37,14 @@ function normalizePrivateKey(privateKey) {
   return normalized.startsWith("0x") ? normalized : `0x${normalized}`;
 }
 
+function resolvePrivateKey(options = {}) {
+  return normalizePrivateKey(
+    options.privateKey ??
+      process.env.BASE_PRIVATE_KEY ??
+      process.env.BASE_DEPLOYER_PRIVATE_KEY,
+  );
+}
+
 function summarizeRpcUrl(rpcUrl, options = {}) {
   try {
     const parsed = new URL(rpcUrl);
@@ -147,9 +155,7 @@ export async function anchorAttestation(attestation, options = {}) {
     return receipt;
   }
 
-  const privateKey = normalizePrivateKey(
-    options.privateKey ?? process.env.BASE_PRIVATE_KEY,
-  );
+  const privateKey = resolvePrivateKey(options);
 
   if (!privateKey) {
     return {
@@ -158,7 +164,8 @@ export async function anchorAttestation(attestation, options = {}) {
         ...receipt.submission,
         mode: "failed",
         status: "failed",
-        error: "BASE_PRIVATE_KEY is required when --submit is used.",
+        error:
+          "BASE_PRIVATE_KEY or BASE_DEPLOYER_PRIVATE_KEY is required when --submit is used.",
       },
     };
   }

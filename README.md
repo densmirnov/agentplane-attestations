@@ -106,10 +106,11 @@ node src/cli.mjs render --input artifacts/trusted-attestation.json --anchor arti
 Generate a live Base transaction for an attestation digest:
 
 ```bash
-BASE_PRIVATE_KEY=0x... node src/cli.mjs anchor --input artifacts/trusted-attestation.json --output artifacts/trusted-anchor.json --submit
+BASE_DEPLOYER_PRIVATE_KEY=0x... node src/cli.mjs anchor --input artifacts/trusted-attestation.json --output artifacts/trusted-anchor.json --submit
 ```
 
 If `BASE_RPC_URL` is unset, the command uses the default public Base RPC from `viem`.
+The submit path accepts either `BASE_PRIVATE_KEY` or `BASE_DEPLOYER_PRIVATE_KEY`.
 Only the attestation digest is intended for on-chain anchoring. The full attestation payload remains off-chain.
 
 ## Output
