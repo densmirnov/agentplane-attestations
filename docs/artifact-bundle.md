@@ -1,6 +1,6 @@
 # Artifact Bundle
 
-`artifact bundle` is the canonical input contract for `agentplane Attestations`.
+`artifact bundle` is the canonical input contract for the universal attestation layer.
 
 The format is intended to be reusable across agents, runtimes, and domains. It captures raw artifacts first and lets the attestor derive claims later.
 
@@ -17,6 +17,7 @@ The format is intended to be reusable across agents, runtimes, and domains. It c
 {
   "schemaVersion": "1.0.0",
   "bundleId": "bundle-passing-demo",
+  "adapter": {},
   "subject": {},
   "context": {},
   "artifacts": []
@@ -27,12 +28,22 @@ The format is intended to be reusable across agents, runtimes, and domains. It c
 
 1. `schemaVersion` version-locks the input contract.
 2. `bundleId` is stable for the bundle instance.
-3. `subject` describes the attested agent identity, not the verdict.
-4. `context` provides shared task/project/source metadata that multiple artifacts can reference.
-5. `artifacts` contains raw observations or decisions only.
-6. Trust score, trust verdict, and derived claims are forbidden as input artifacts. They belong to the attestation output.
-7. `artifactId` values are unique within one bundle.
-8. Every artifact has one primary `kind`, one `producer`, one `subjectRef`, one `generatedAt`, and one `payload`.
+3. optional `adapter` identifies which runtime adapter emitted the bundle
+4. `subject` describes the attested agent identity, not the verdict.
+5. `context` provides shared task/project/source metadata that multiple artifacts can reference.
+6. `artifacts` contains raw observations or decisions only.
+7. Trust score, trust verdict, and derived claims are forbidden as input artifacts. They belong to the attestation output.
+8. `artifactId` values are unique within one bundle.
+9. Every artifact has one primary `kind`, one `producer`, one `subjectRef`, one `generatedAt`, and one `payload`.
+
+## Direct vs adapter-emitted bundles
+
+Bundles may be created in two ways:
+
+1. directly by a system that already speaks the canonical format
+2. through a runtime adapter that translates a runtime-native snapshot into canonical artifacts
+
+When a bundle is emitted by an adapter, the top-level optional `adapter` block should identify the adapter provenance.
 
 ## Canonical artifact kinds
 
@@ -118,7 +129,7 @@ The bundle format fixes that by keeping raw artifacts independent and typed.
 
 ## Normalization model
 
-`agentplane Attestations` currently derives a simplified evidence view from the bundle:
+The current attestation core derives a simplified evidence view from the bundle:
 
 - latest `intent` artifact -> task summary
 - latest `approval` artifact -> approval status

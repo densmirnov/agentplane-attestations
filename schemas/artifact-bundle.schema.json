@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://agentplane.dev/schemas/artifact-bundle.schema.json",
-  "title": "Artifact Bundle",
+  "$id": "urn:agent-attestations:artifact-bundle:1.0.0",
+  "title": "Agent Attestation Artifact Bundle",
   "type": "object",
   "additionalProperties": false,
   "required": ["schemaVersion", "bundleId", "subject", "context", "artifacts"],
@@ -12,6 +12,9 @@
     "bundleId": {
       "type": "string",
       "minLength": 1
+    },
+    "adapter": {
+      "$ref": "#/$defs/adapter"
     },
     "subject": {
       "$ref": "#/$defs/subject"
@@ -42,6 +45,28 @@
           "minLength": 1
         },
         "displayName": {
+          "type": "string"
+        }
+      }
+    },
+    "adapter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["adapterId", "runtime", "version"],
+      "properties": {
+        "adapterId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "runtime": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
           "type": "string"
         }
       }
@@ -201,7 +226,15 @@
         },
         "kind": {
           "type": "string",
-          "enum": ["intent", "approval", "execution", "verification", "conversation", "anchor", "note"]
+          "enum": [
+            "intent",
+            "approval",
+            "execution",
+            "verification",
+            "conversation",
+            "anchor",
+            "note"
+          ]
         },
         "generatedAt": {
           "type": "string",

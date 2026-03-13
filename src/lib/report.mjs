@@ -1,40 +1,46 @@
 function badgeClass(verdict) {
   switch (verdict) {
-    case 'trusted':
-      return 'trusted';
-    case 'caution':
-      return 'caution';
+    case "trusted":
+      return "trusted";
+    case "caution":
+      return "caution";
     default:
-      return 'reject';
+      return "reject";
   }
 }
 
 function escapeHtml(value) {
   return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }
 
 function renderList(items) {
-  return items.map((item) => `<li>${escapeHtml(item)}</li>`).join('');
+  return items.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
 }
 
 function renderCheckList(checks) {
   return checks
     .map(
-      (check) => `<li><strong>${escapeHtml(check.name)}</strong> · ${escapeHtml(check.status)}${
-        check.required ? ' · required' : ''
-      }</li>`
+      (check) =>
+        `<li><strong>${escapeHtml(check.name)}</strong> · ${escapeHtml(check.status)}${
+          check.required ? " · required" : ""
+        }</li>`,
     )
-    .join('');
+    .join("");
 }
 
-export function renderAttestationReport({ attestation, verification, avatarFileName }) {
+export function renderAttestationReport({
+  attestation,
+  verification,
+  avatarFileName,
+}) {
   const anchor = attestation.anchors?.registration;
   const filesChanged = attestation.evidence.execution.filesChanged ?? [];
+  const adapter = attestation.inputSurface?.adapter;
 
   return `<!doctype html>
 <html lang="en">
@@ -220,11 +226,11 @@ export function renderAttestationReport({ attestation, verification, avatarFileN
         <div>
           <div class="meta">
             <span class="badge ${badgeClass(verification.verdict)}">${escapeHtml(
-              verification.verdict.toUpperCase()
+              verification.verdict.toUpperCase(),
             )}</span>
             <span class="chip">Score ${escapeHtml(verification.score)}</span>
             <span class="chip">${escapeHtml(attestation.subject.harness)} · ${escapeHtml(
-              attestation.subject.model
+              attestation.subject.model,
             )}</span>
           </div>
           <h1>${escapeHtml(attestation.product)}</h1>
@@ -241,8 +247,19 @@ export function renderAttestationReport({ attestation, verification, avatarFileN
         <section>
           <h2>Claims</h2>
           <ul>${renderList(
-            Object.entries(attestation.claims).map(([claim, value]) => `${claim}: ${value ? 'yes' : 'no'}`)
+            Object.entries(attestation.claims).map(
+              ([claim, value]) => `${claim}: ${value ? "yes" : "no"}`,
+            ),
           )}</ul>
+        </section>
+
+        <section>
+          <h2>Input surface</h2>
+          <ul>${renderList([
+            `type: ${attestation.inputSurface?.type ?? "unknown"}`,
+            `bundle id: ${attestation.inputSurface?.bundleId ?? "n/a"}`,
+            `adapter: ${adapter ? `${adapter.adapterId} (${adapter.runtime})` : "direct bundle"}`,
+          ])}</ul>
         </section>
 
         <section>
@@ -257,31 +274,31 @@ export function renderAttestationReport({ attestation, verification, avatarFileN
 
         <section>
           <h2>Warnings</h2>
-          <ul>${renderList(verification.warnings.length > 0 ? verification.warnings : ['No warnings.'])}</ul>
+          <ul>${renderList(verification.warnings.length > 0 ? verification.warnings : ["No warnings."])}</ul>
         </section>
 
         <section>
           <h2>Execution proof</h2>
           <ul>${renderList([
-            `repo: ${attestation.evidence.execution.repo ?? 'n/a'}`,
-            `branch: ${attestation.evidence.execution.branch ?? 'n/a'}`,
-            `commit: ${attestation.evidence.execution.commit ?? 'n/a'}`,
+            `repo: ${attestation.evidence.execution.repo ?? "n/a"}`,
+            `branch: ${attestation.evidence.execution.branch ?? "n/a"}`,
+            `commit: ${attestation.evidence.execution.commit ?? "n/a"}`,
             `added lines: ${attestation.evidence.execution.diffStat.added}`,
-            `deleted lines: ${attestation.evidence.execution.diffStat.deleted}`
+            `deleted lines: ${attestation.evidence.execution.diffStat.deleted}`,
           ])}</ul>
         </section>
 
         <section>
           <h2>Anchor</h2>
           <ul>${renderList([
-            anchor ? `chain: ${anchor.chain}` : 'chain: none',
-            anchor ? `kind: ${anchor.kind}` : 'kind: none',
-            `digest: ${attestation.integrity.attestationDigest.slice(0, 18)}...`
+            anchor ? `chain: ${anchor.chain}` : "chain: none",
+            anchor ? `kind: ${anchor.kind}` : "kind: none",
+            `digest: ${attestation.integrity.attestationDigest.slice(0, 18)}...`,
           ])}</ul>
           ${
             anchor
               ? `<p class="subtitle" style="margin-top: 14px;">Public registration anchor: <a href="${escapeHtml(
-                  anchor.txUrl
+                  anchor.txUrl,
                 )}">${escapeHtml(anchor.txUrl)}</a></p>`
               : '<p class="subtitle" style="margin-top: 14px;">No Base anchor is attached.</p>'
           }
@@ -292,7 +309,12 @@ export function renderAttestationReport({ attestation, verification, avatarFileN
 </html>`;
 }
 
-export function buildDemoIndex({ passing, failing, passingVerification, failingVerification }) {
+export function buildDemoIndex({
+  passing,
+  failing,
+  passingVerification,
+  failingVerification,
+}) {
   return `<!doctype html>
 <html lang="en">
   <head>
@@ -370,13 +392,13 @@ export function buildDemoIndex({ passing, failing, passingVerification, failingV
     <main>
       <span class="tag">Hackathon MVP</span>
       <h1>agentplane Attestations</h1>
-      <p>Trust is not a log dump. This demo compares a trusted attestation and a rejected attestation produced from explicit evidence and policy rules.</p>
+      <p>Trust is not a log dump. This demo compares a trusted attestation and a rejected attestation produced from explicit evidence and policy rules, both emitted through the built-in agentplane runtime adapter.</p>
 
       <section class="cards">
         <article class="card">
           <h2>Trusted path</h2>
           <p>Task ${escapeHtml(passing.evidence.task.id)} scored ${escapeHtml(
-            passingVerification.score
+            passingVerification.score,
           )} and produced a ${escapeHtml(passingVerification.verdict)} verdict.</p>
           <ul>
             <li><a href="./passing-attestation.json">Open passing attestation JSON</a></li>
@@ -387,7 +409,7 @@ export function buildDemoIndex({ passing, failing, passingVerification, failingV
         <article class="card">
           <h2>Rejected path</h2>
           <p>Task ${escapeHtml(failing.evidence.task.id)} scored ${escapeHtml(
-            failingVerification.score
+            failingVerification.score,
           )} and produced a ${escapeHtml(failingVerification.verdict)} verdict.</p>
           <ul>
             <li><a href="./failing-attestation.json">Open failing attestation JSON</a></li>

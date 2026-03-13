@@ -1,9 +1,11 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+import { getRuntimeAdapter, listRuntimeAdapters } from "./adapters/index.mjs";
 import { createAttestation, verifyAttestation } from "./lib/attestation.mjs";
 import { ensureAvatarPng } from "./lib/avatar.mjs";
 import { canonicalStringify } from "./lib/canonical-json.mjs";
 import { buildDemoIndex, renderAttestationReport } from "./lib/report.mjs";
+import { adaptRuntimeSnapshot } from "./lib/runtime-adapter.mjs";
 
 function parseArgs(argv) {
   const options = {};
@@ -49,13 +51,39 @@ function usage() {
   process.stderr.write(
     [
       "Usage:",
+      "  node src/cli.mjs adapt --adapter <id> --input <runtime-snapshot.json> --output <bundle.json>",
       "  node src/cli.mjs generate --input <artifact-bundle.json> --output <attestation.json>",
       "  node src/cli.mjs verify --input <attestation.json> [--expect trusted|caution|reject]",
       "  node src/cli.mjs render --input <attestation.json> --output <report.html>",
       "  node src/cli.mjs demo [--output-dir artifacts]",
+      "",
+      `Available adapters: ${listRuntimeAdapters()
+        .map((adapter) => adapter.adapterId)
+        .join(", ")}`,
     ].join("\n"),
   );
   process.stderr.write("\n");
+}
+
+function runAdapt(options) {
+  if (!options.adapter || !options.input || !options.output) {
+    throw new Error("adapt requires --adapter, --input, and --output");
+  }
+
+  const adapter = getRuntimeAdapter(options.adapter);
+  const snapshot = readJson(options.input);
+  const bundle = adaptRuntimeSnapshot({ adapter, snapshot });
+  writeJson(options.output, bundle);
+
+  printSummary({
+    command: "adapt",
+    adapter: adapter.adapterId,
+    runtime: adapter.runtime,
+    input: options.input,
+    output: options.output,
+    bundleId: bundle.bundleId,
+    artifactCount: bundle.artifacts.length,
+  });
 }
 
 function runGenerate(options) {
@@ -134,12 +162,22 @@ function runRender(options) {
 function runDemo(options) {
   const outputDir = resolve(options["output-dir"] ?? "artifacts");
   mkdirSync(outputDir, { recursive: true });
+  const adapter = getRuntimeAdapter("agentplane");
 
-  const passingEvidence = readJson("examples/passing-bundle.json");
-  const failingEvidence = readJson("examples/failing-bundle.json");
+  const passingBundle = adaptRuntimeSnapshot({
+    adapter,
+    snapshot: readJson("examples/agentplane-runtime-passing.json"),
+  });
+  const failingBundle = adaptRuntimeSnapshot({
+    adapter,
+    snapshot: readJson("examples/agentplane-runtime-failing.json"),
+  });
 
-  const passingAttestation = createAttestation(passingEvidence);
-  const failingAttestation = createAttestation(failingEvidence);
+  writeJson(resolve(outputDir, "passing-bundle.json"), passingBundle);
+  writeJson(resolve(outputDir, "failing-bundle.json"), failingBundle);
+
+  const passingAttestation = createAttestation(passingBundle);
+  const failingAttestation = createAttestation(failingBundle);
 
   const passingAttestationPath = resolve(outputDir, "passing-attestation.json");
   const failingAttestationPath = resolve(outputDir, "failing-attestation.json");
@@ -190,6 +228,8 @@ function runDemo(options) {
       bundleId: failingAttestation.inputSurface.bundleId,
     },
     files: [
+      resolve(outputDir, "passing-bundle.json"),
+      resolve(outputDir, "failing-bundle.json"),
       passingAttestationPath,
       failingAttestationPath,
       resolve(outputDir, "passing-report.html"),
@@ -207,6 +247,9 @@ function main() {
   switch (command) {
     case "generate":
       runGenerate(options);
+      return;
+    case "adapt":
+      runAdapt(options);
       return;
     case "verify":
       runVerify(options);

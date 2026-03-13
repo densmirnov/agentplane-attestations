@@ -1,0 +1,91 @@
+{
+  "runtime": "agentplane",
+  "runtimeVersion": "0.3.6",
+  "bundleId": "bundle-failing-demo",
+  "subject": {
+    "agentId": "agentplane",
+    "displayName": "agentplane",
+    "harness": "codex-cli",
+    "model": "gpt-5",
+    "operator": {
+      "kind": "human",
+      "id": "densmirnov",
+      "displayName": "Denis Smirnov"
+    }
+  },
+  "project": {
+    "name": "agentplane Attestations",
+    "theme": "Agents that trust",
+    "problem": "Humans and downstream agents need a portable way to decide whether agent output is trustworthy."
+  },
+  "task": {
+    "id": "demo-negative-path",
+    "title": "Attempt attestation without trust prerequisites",
+    "generatedAt": "2026-03-13T10:40:00.000Z",
+    "summary": "Show that missing approval and failed checks downgrade trust.",
+    "scope": [
+      "negative-path"
+    ],
+    "requestedOutcome": "Demonstrate policy rejection."
+  },
+  "approvals": {
+    "human": {
+      "status": "missing",
+      "generatedAt": "2026-03-13T10:40:30.000Z",
+      "actor": {
+        "kind": "human",
+        "id": "densmirnov",
+        "displayName": "Denis Smirnov"
+      },
+      "rationale": "No approval was granted."
+    }
+  },
+  "execution": {
+    "generatedAt": "2026-03-13T10:41:00.000Z",
+    "producer": {
+      "kind": "agent",
+      "id": "agentplane",
+      "displayName": "agentplane"
+    },
+    "repo": "synthesis-hackathon",
+    "branch": "main",
+    "commit": null,
+    "filesChanged": [],
+    "diffStat": {
+      "added": 0,
+      "deleted": 0
+    }
+  },
+  "verification": {
+    "generatedAt": "2026-03-13T10:41:30.000Z",
+    "producer": {
+      "kind": "ci",
+      "id": "local-node-test",
+      "displayName": "local-node-test"
+    },
+    "conversationLogAttached": false,
+    "checks": [
+      {
+        "name": "Generate failing attestation",
+        "required": true,
+        "status": "fail"
+      },
+      {
+        "name": "Verify failing attestation",
+        "required": true,
+        "status": "fail"
+      }
+    ]
+  },
+  "notes": [
+    {
+      "generatedAt": "2026-03-13T10:42:00.000Z",
+      "producer": {
+        "kind": "agent",
+        "id": "agentplane",
+        "displayName": "agentplane"
+      },
+      "text": "This runtime snapshot represents the negative path."
+    }
+  ]
+}

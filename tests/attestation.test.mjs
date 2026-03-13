@@ -1,11 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { getRuntimeAdapter } from "../src/adapters/index.mjs";
 import {
   createAttestation,
   verifyAttestation,
 } from "../src/lib/attestation.mjs";
 import { validateArtifactBundle } from "../src/lib/artifact-bundle.mjs";
+import { adaptRuntimeSnapshot } from "../src/lib/runtime-adapter.mjs";
 
 function loadJson(filePath) {
   return JSON.parse(readFileSync(new URL(filePath, import.meta.url), "utf8"));
@@ -94,4 +96,31 @@ test("bundle validation rejects malformed artifact bundles", () => {
       error.includes("At least one intent artifact is required."),
     ),
   );
+});
+
+test("agentplane adapter emits a canonical artifact bundle", () => {
+  const adapter = getRuntimeAdapter("agentplane");
+  const snapshot = loadJson("../examples/agentplane-runtime-passing.json");
+  const bundle = adaptRuntimeSnapshot({ adapter, snapshot });
+  const validation = validateArtifactBundle(bundle);
+
+  assert.equal(validation.valid, true);
+  assert.equal(bundle.adapter.adapterId, "agentplane");
+  assert.equal(bundle.adapter.runtime, "agentplane");
+  assert.ok(bundle.artifacts.some((artifact) => artifact.kind === "intent"));
+  assert.ok(
+    bundle.artifacts.some((artifact) => artifact.kind === "verification"),
+  );
+});
+
+test("agentplane adapter path generates a trusted attestation", () => {
+  const adapter = getRuntimeAdapter("agentplane");
+  const snapshot = loadJson("../examples/agentplane-runtime-passing.json");
+  const bundle = adaptRuntimeSnapshot({ adapter, snapshot });
+  const attestation = createAttestation(bundle);
+  const verification = verifyAttestation(attestation);
+
+  assert.equal(attestation.inputSurface.adapter.adapterId, "agentplane");
+  assert.equal(attestation.inputSurface.adapter.runtime, "agentplane");
+  assert.equal(verification.verdict, "trusted");
 });

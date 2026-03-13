@@ -1,0 +1,129 @@
+{
+  "runtime": "agentplane",
+  "runtimeVersion": "0.3.6",
+  "bundleId": "bundle-passing-demo",
+  "subject": {
+    "agentId": "agentplane",
+    "displayName": "agentplane",
+    "harness": "codex-cli",
+    "model": "gpt-5",
+    "operator": {
+      "kind": "human",
+      "id": "densmirnov",
+      "displayName": "Denis Smirnov"
+    }
+  },
+  "project": {
+    "name": "agentplane Attestations",
+    "theme": "Agents that trust",
+    "problem": "Humans and downstream agents need a portable way to decide whether agent output is trustworthy."
+  },
+  "task": {
+    "id": "202603130958-JRS5E8",
+    "title": "Build agentplane Attestations MVP",
+    "generatedAt": "2026-03-13T10:01:00.000Z",
+    "summary": "Generate a portable attestation, verify it under explicit policy, and render a demo report.",
+    "scope": [
+      "schema",
+      "verification",
+      "demo-report"
+    ],
+    "requestedOutcome": "Produce a trust-aware attestation MVP."
+  },
+  "approvals": {
+    "human": {
+      "status": "approved",
+      "generatedAt": "2026-03-13T10:02:00.000Z",
+      "actor": {
+        "kind": "human",
+        "id": "densmirnov",
+        "displayName": "Denis Smirnov"
+      },
+      "rationale": "Scope and demo path are acceptable."
+    }
+  },
+  "execution": {
+    "generatedAt": "2026-03-13T10:30:00.000Z",
+    "producer": {
+      "kind": "agent",
+      "id": "agentplane",
+      "displayName": "agentplane"
+    },
+    "repo": "synthesis-hackathon",
+    "branch": "main",
+    "commit": "demo-local-passing",
+    "filesChanged": [
+      "README.md",
+      "package.json",
+      "src/cli.mjs",
+      "src/lib/attestation.mjs",
+      "src/lib/policy.mjs",
+      "src/lib/report.mjs",
+      "tests/attestation.test.mjs"
+    ],
+    "diffStat": {
+      "added": 640,
+      "deleted": 0
+    }
+  },
+  "verification": {
+    "generatedAt": "2026-03-13T10:33:00.000Z",
+    "producer": {
+      "kind": "ci",
+      "id": "local-node-test",
+      "displayName": "local-node-test"
+    },
+    "conversationLogAttached": true,
+    "checks": [
+      {
+        "name": "Generate passing attestation",
+        "required": true,
+        "status": "pass"
+      },
+      {
+        "name": "Verify passing attestation",
+        "required": true,
+        "status": "pass"
+      },
+      {
+        "name": "Render passing report",
+        "required": false,
+        "status": "pass"
+      }
+    ]
+  },
+  "conversation": {
+    "generatedAt": "2026-03-13T10:33:30.000Z",
+    "producer": {
+      "kind": "system",
+      "id": "agentplane",
+      "displayName": "agentplane"
+    },
+    "attached": true,
+    "summary": "Conversation log is available in task history."
+  },
+  "anchors": [
+    {
+      "generatedAt": "2026-03-13T10:34:00.000Z",
+      "producer": {
+        "kind": "chain",
+        "id": "base-mainnet",
+        "displayName": "Base Mainnet"
+      },
+      "kind": "hackathon-registration",
+      "chain": "Base",
+      "txUrl": "https://basescan.org/tx/0x2f06bc4d286d50e20aa55e4fc6bdb762c20cf219298be55aa688955c53e4230e"
+    }
+  ],
+  "notes": [
+    {
+      "generatedAt": "2026-03-13T10:35:00.000Z",
+      "producer": {
+        "kind": "agent",
+        "id": "agentplane",
+        "displayName": "agentplane"
+      },
+      "text": "This runtime snapshot represents the green path for the hackathon demo."
+    }
+  ]
+}
