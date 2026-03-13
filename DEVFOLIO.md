@@ -5,6 +5,21 @@ This document converts the shipped repository state into field-ready submission 
 It does not replace [SUBMISSION.md](/Users/densmirnov/Desktop/synthesis-hackathon/SUBMISSION.md).
 Instead, it turns that repository evidence into concise copy blocks plus a final submission dry run.
 
+## Source Basis
+
+This document is grounded in:
+
+1. the shipped repository state
+2. the local snapshot of the current Synthesis skill page in [docs/synthesis-skill-2026-03-13.md](/Users/densmirnov/Desktop/synthesis-hackathon/docs/synthesis-skill-2026-03-13.md)
+
+It is not based on older public hackathon pages.
+
+Important boundary:
+
+1. the current skill snapshot is strongest on registration and general rules
+2. it explicitly says final submissions will open later
+3. this document therefore treats repository evidence as primary for shipped behavior and uses the skill snapshot only for current platform-level constraints such as harness/model disclosure
+
 ## Field-Ready Copy
 
 ### Project Name
@@ -98,6 +113,21 @@ Confirmed attestation anchor:
 7. confirmed Base anchor for the trusted attestation digest
 8. submission freeze flow with a file-hash manifest
 
+### Stack Disclosure And `submissionMetadata`
+
+The current Synthesis skill snapshot says that registration-time `agentHarness` and `model` may later be superseded by the project's `submissionMetadata` at submission time. Treat that as the canonical place to describe what was actually used for the shipped build.
+
+Use this disclosure logic:
+
+1. primary build harness: `codex-cli`
+2. primary build model: `gpt-5`
+3. `agentplane` is the product and orchestration frame, not a platform harness enum from the skill page
+4. `openclaw` appears in this repository only as a reference interoperability adapter, not as the primary harness used to build the submission
+
+If the form has a free-text stack field, use:
+
+`Built primarily with codex-cli on gpt-5. agentplane is the product and orchestration layer. openclaw appears only as a reference interoperability adapter, not as the primary harness used to build the submission.`
+
 ### Demo Walkthrough Copy
 
 Open `artifacts/index.html` and show:
@@ -155,8 +185,9 @@ node src/cli.mjs freeze \
 ```
 
 8. Check that submission copy does not claim the full attestation is on-chain.
-9. Paste the text blocks above into the form.
-10. If the UI asks for a single repo evidence pointer, use `SUBMISSION.md` and `docs/conversation-log.md`.
+9. If the UI exposes harness or model disclosure fields, align them with the actual shipped build via the `submissionMetadata` logic above: `codex-cli` and `gpt-5`, not `openclaw`.
+10. Paste the text blocks above into the form.
+11. If the UI asks for a single repo evidence pointer, use `SUBMISSION.md` and `docs/conversation-log.md`.
 
 ## Weakest Link
 
