@@ -1,7 +1,8 @@
 ---
 id: "202603131557-G7VWSG"
 title: "Prepare Devfolio submission copy and dry-run checklist"
-status: "DOING"
+result_summary: "Final submission text is now packaged in a dedicated Devfolio document, reducing manual form assembly and overclaim risk."
+status: "DONE"
 priority: "med"
 owner: "DOCS"
 depends_on: []
@@ -14,15 +15,20 @@ plan_approval:
   updated_by: "ORCHESTRATOR"
   note: null
 verification:
-  state: "pending"
-  updated_at: null
-  updated_by: null
-  note: null
-commit: null
+  state: "ok"
+  updated_at: "2026-03-13T16:00:47.185Z"
+  updated_by: "DOCS"
+  note: "Verified: added a field-ready Devfolio submission pack, linked it from the canonical submission entrypoints, and kept the docs aligned with shipped behavior and explicit caveats."
+commit:
+  hash: "6066ba395d154317cd0de3774255ea8904a86f9c"
+  message: "📝 docs: add Devfolio submission pack"
 comments:
   -
     author: "DOCS"
     body: "Start: prepare a field-by-field Devfolio submission pack and a final judging dry-run checklist based only on shipped repository behavior, current artifacts, and explicit manual submit-time actions."
+  -
+    author: "DOCS"
+    body: "Verified: added a Devfolio-oriented submission pack with field-ready copy, explicit manual-value boundaries, and a final dry-run sequence linked from the canonical submission docs."
 events:
   -
     type: "status"
@@ -31,8 +37,21 @@ events:
     from: "TODO"
     to: "DOING"
     note: "Start: prepare a field-by-field Devfolio submission pack and a final judging dry-run checklist based only on shipped repository behavior, current artifacts, and explicit manual submit-time actions."
+  -
+    type: "verify"
+    at: "2026-03-13T16:00:47.185Z"
+    author: "DOCS"
+    state: "ok"
+    note: "Verified: added a field-ready Devfolio submission pack, linked it from the canonical submission entrypoints, and kept the docs aligned with shipped behavior and explicit caveats."
+  -
+    type: "status"
+    at: "2026-03-13T16:00:59.557Z"
+    author: "DOCS"
+    from: "DOING"
+    to: "DONE"
+    note: "Verified: added a Devfolio-oriented submission pack with field-ready copy, explicit manual-value boundaries, and a final dry-run sequence linked from the canonical submission docs."
 doc_version: 3
-doc_updated_at: "2026-03-13T15:58:45.993Z"
+doc_updated_at: "2026-03-13T16:00:59.557Z"
 doc_updated_by: "DOCS"
 description: "Add a docs-only Devfolio-oriented submission pack with field-ready copy, manual external-value checklist, and a final judging dry-run sequence derived from the shipped repository state."
 id_source: "generated"
@@ -75,6 +94,15 @@ Add a docs-only Devfolio-oriented submission pack with field-ready copy, manual 
 - `node .agentplane/policy/check-routing.mjs`
   - Result: pass
   - Evidence: `policy routing OK`
+
+#### 2026-03-13T16:00:47.185Z — VERIFY — ok
+
+By: DOCS
+
+Note: Verified: added a field-ready Devfolio submission pack, linked it from the canonical submission entrypoints, and kept the docs aligned with shipped behavior and explicit caveats.
+
+VerifyStepsRef: doc_version=3, doc_updated_at=2026-03-13T15:58:45.993Z, excerpt_hash=sha256:269a691c24f18fd82b1ed24e801aacca3c1ad2a1e211eb1bec7f3012996d7d3f
+
 <!-- END VERIFICATION RESULTS -->
 
 ## Rollback Plan
