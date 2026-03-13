@@ -1,7 +1,8 @@
 ---
 id: "202603131519-F5JEWC"
 title: "Confirm live Base anchor with deployer key"
-status: "DOING"
+result_summary: "Confirmed one real Base attestation anchor transaction for the trusted demo path and aligned the code/docs with BASE_DEPLOYER_PRIVATE_KEY as a supported signer env."
+status: "DONE"
 priority: "med"
 owner: "CODER"
 depends_on: []
@@ -18,11 +19,16 @@ verification:
   updated_at: "2026-03-13T15:23:50.874Z"
   updated_by: "CODER"
   note: "Command: npm test | Result: pass | Evidence: 13 tests passed after adding BASE_DEPLOYER_PRIVATE_KEY support. Scope: attestation, anchor, extractor, and demo paths. Command: npm run demo | Result: pass | Evidence: regenerated trusted demo artifacts from task 202603131341-YNE1V9. Scope: trusted/rejected demo generation. Command: deployer balance precheck | Result: pass | Evidence: address 0xc9EF33216b7EDa860Fd1F6CC991cc51257dC532d had 0.019381686024969107 ETH on Base. Scope: live submit safety check. Command: set -a; source .env >/dev/null 2>&1; node src/cli.mjs anchor --input artifacts/trusted-attestation.json --output artifacts/trusted-anchor.json --submit | Result: pass | Evidence: confirmed Base tx 0x9c6ec8585f139255fa613427ea4c5c9ed412c6f32a0138f1db05fc1473d0b934 at block 43312987 with success status. Scope: real on-chain attestation anchor. Command: node src/cli.mjs render --input artifacts/trusted-attestation.json --anchor artifacts/trusted-anchor.json --output artifacts/trusted-report.html | Result: pass | Evidence: trusted report rendered with confirmed txUrl. Scope: judge-facing report linkage. Command: regenerate index from confirmed anchor | Result: pass | Evidence: artifacts/index.html now shows Anchor mode confirmed and the trusted task source. Scope: demo entrypoint freshness. Command: agentplane doctor | Result: pass | Evidence: ok true with findings 0. Scope: workflow health. Command: node .agentplane/policy/check-routing.mjs | Result: pass | Evidence: policy routing OK. Scope: policy validation."
-commit: null
+commit:
+  hash: "a950e8699d51027d9f3e27383baf63a8dbb511f9"
+  message: "✨ anchor: accept deployer key alias"
 comments:
   -
     author: "CODER"
     body: "Start: adding BASE_DEPLOYER_PRIVATE_KEY support to the live anchor flow, then using it to submit one real Base anchor transaction for the trusted attestation and rerendering the confirmed report."
+  -
+    author: "CODER"
+    body: "Verified: the live Base anchor path now accepts the actual deployer key alias, a real attestation digest was confirmed on Base, and the trusted report/index were refreshed against the confirmed receipt."
 events:
   -
     type: "status"
@@ -37,8 +43,15 @@ events:
     author: "CODER"
     state: "ok"
     note: "Command: npm test | Result: pass | Evidence: 13 tests passed after adding BASE_DEPLOYER_PRIVATE_KEY support. Scope: attestation, anchor, extractor, and demo paths. Command: npm run demo | Result: pass | Evidence: regenerated trusted demo artifacts from task 202603131341-YNE1V9. Scope: trusted/rejected demo generation. Command: deployer balance precheck | Result: pass | Evidence: address 0xc9EF33216b7EDa860Fd1F6CC991cc51257dC532d had 0.019381686024969107 ETH on Base. Scope: live submit safety check. Command: set -a; source .env >/dev/null 2>&1; node src/cli.mjs anchor --input artifacts/trusted-attestation.json --output artifacts/trusted-anchor.json --submit | Result: pass | Evidence: confirmed Base tx 0x9c6ec8585f139255fa613427ea4c5c9ed412c6f32a0138f1db05fc1473d0b934 at block 43312987 with success status. Scope: real on-chain attestation anchor. Command: node src/cli.mjs render --input artifacts/trusted-attestation.json --anchor artifacts/trusted-anchor.json --output artifacts/trusted-report.html | Result: pass | Evidence: trusted report rendered with confirmed txUrl. Scope: judge-facing report linkage. Command: regenerate index from confirmed anchor | Result: pass | Evidence: artifacts/index.html now shows Anchor mode confirmed and the trusted task source. Scope: demo entrypoint freshness. Command: agentplane doctor | Result: pass | Evidence: ok true with findings 0. Scope: workflow health. Command: node .agentplane/policy/check-routing.mjs | Result: pass | Evidence: policy routing OK. Scope: policy validation."
+  -
+    type: "status"
+    at: "2026-03-13T15:24:31.011Z"
+    author: "CODER"
+    from: "DOING"
+    to: "DONE"
+    note: "Verified: the live Base anchor path now accepts the actual deployer key alias, a real attestation digest was confirmed on Base, and the trusted report/index were refreshed against the confirmed receipt."
 doc_version: 3
-doc_updated_at: "2026-03-13T15:23:50.875Z"
+doc_updated_at: "2026-03-13T15:24:31.011Z"
 doc_updated_by: "CODER"
 description: "Accept BASE_DEPLOYER_PRIVATE_KEY as the live signer source, submit one real Base anchor transaction for the trusted attestation, rerender the trusted report, and record confirmed tx evidence."
 id_source: "generated"
