@@ -36,9 +36,11 @@ function renderCheckList(checks) {
 export function renderAttestationReport({
   attestation,
   verification,
+  anchorReceipt = null,
   avatarFileName,
 }) {
-  const anchor = attestation.anchors?.registration;
+  const registrationAnchor = attestation.anchors?.registration;
+  const attestationAnchor = anchorReceipt?.submission ?? null;
   const filesChanged = attestation.evidence.execution.filesChanged ?? [];
   const adapter = attestation.inputSurface?.adapter;
 
@@ -289,18 +291,49 @@ export function renderAttestationReport({
         </section>
 
         <section>
-          <h2>Anchor</h2>
+          <h2>Attestation anchor</h2>
           <ul>${renderList([
-            anchor ? `chain: ${anchor.chain}` : "chain: none",
-            anchor ? `kind: ${anchor.kind}` : "kind: none",
+            anchorReceipt
+              ? `chain: ${anchorReceipt.network.chain}`
+              : "chain: none",
+            anchorReceipt
+              ? `mode: ${anchorReceipt.submission.mode}`
+              : "mode: not prepared",
+            anchorReceipt
+              ? `protocol: ${anchorReceipt.anchorSubject.protocol}`
+              : "protocol: n/a",
             `digest: ${attestation.integrity.attestationDigest.slice(0, 18)}...`,
           ])}</ul>
           ${
-            anchor
-              ? `<p class="subtitle" style="margin-top: 14px;">Public registration anchor: <a href="${escapeHtml(
-                  anchor.txUrl,
-                )}">${escapeHtml(anchor.txUrl)}</a></p>`
-              : '<p class="subtitle" style="margin-top: 14px;">No Base anchor is attached.</p>'
+            attestationAnchor?.txUrl
+              ? `<p class="subtitle" style="margin-top: 14px;">Attestation digest anchored on Base: <a href="${escapeHtml(
+                  attestationAnchor.txUrl,
+                )}">${escapeHtml(attestationAnchor.txUrl)}</a></p>`
+              : anchorReceipt
+                ? '<p class="subtitle" style="margin-top: 14px;">Anchor payload is prepared. Only the attestation digest is intended for on-chain anchoring; the full attestation remains off-chain.</p>'
+                : '<p class="subtitle" style="margin-top: 14px;">No attestation-specific Base anchor has been prepared yet.</p>'
+          }
+        </section>
+
+        <section>
+          <h2>Registration anchor</h2>
+          <ul>${renderList([
+            registrationAnchor
+              ? `chain: ${registrationAnchor.chain}`
+              : "chain: none",
+            registrationAnchor
+              ? `kind: ${registrationAnchor.kind}`
+              : "kind: none",
+            anchorReceipt?.anchorSubject?.message
+              ? `payload: ${anchorReceipt.anchorSubject.message.slice(0, 40)}...`
+              : "payload: n/a",
+          ])}</ul>
+          ${
+            registrationAnchor
+              ? `<p class="subtitle" style="margin-top: 14px;">Hackathon registration anchor: <a href="${escapeHtml(
+                  registrationAnchor.txUrl,
+                )}">${escapeHtml(registrationAnchor.txUrl)}</a></p>`
+              : '<p class="subtitle" style="margin-top: 14px;">No registration anchor is attached.</p>'
           }
         </section>
       </section>
@@ -314,6 +347,7 @@ export function buildDemoIndex({
   failing,
   passingVerification,
   failingVerification,
+  passingAnchor = null,
 }) {
   return `<!doctype html>
 <html lang="en">
@@ -399,9 +433,18 @@ export function buildDemoIndex({
           <h2>Trusted path</h2>
           <p>Task ${escapeHtml(passing.evidence.task.id)} scored ${escapeHtml(
             passingVerification.score,
-          )} and produced a ${escapeHtml(passingVerification.verdict)} verdict.</p>
+          )} and produced a ${escapeHtml(passingVerification.verdict)} verdict${
+            passingAnchor
+              ? ` with ${escapeHtml(passingAnchor.submission.mode)} Base anchor evidence.`
+              : "."
+          }</p>
           <ul>
             <li><a href="./passing-attestation.json">Open passing attestation JSON</a></li>
+            ${
+              passingAnchor
+                ? '<li><a href="./passing-anchor.json">Open passing anchor receipt</a></li>'
+                : ""
+            }
             <li><a href="./passing-report.html">Open passing report</a></li>
           </ul>
         </article>

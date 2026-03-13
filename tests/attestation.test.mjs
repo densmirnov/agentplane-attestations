@@ -5,6 +5,10 @@ import { execFileSync } from "node:child_process";
 import { getRuntimeAdapter } from "../src/adapters/index.mjs";
 import { extractAgentplaneTaskSnapshot } from "../src/lib/agentplane-task-extractor.mjs";
 import {
+  buildAttestationAnchorReceipt,
+  validateAttestationAnchorReceipt,
+} from "../src/lib/anchor.mjs";
+import {
   createAttestation,
   verifyAttestation,
 } from "../src/lib/attestation.mjs";
@@ -203,6 +207,26 @@ test("real agentplane task path generates a trusted attestation", () => {
   );
 });
 
+test("attestation anchor receipt is deterministic and matches the attestation", () => {
+  const bundle = loadJson("../examples/passing-bundle.json");
+  const attestation = createAttestation(bundle);
+  const receipt = buildAttestationAnchorReceipt(attestation, {
+    createdAt: "2026-03-13T12:00:00.000Z",
+    rpcUrl: "https://mainnet.base.org",
+  });
+  const validation = validateAttestationAnchorReceipt(attestation, receipt);
+
+  assert.equal(validation.valid, true);
+  assert.equal(receipt.network.chain, "Base");
+  assert.equal(receipt.anchorSubject.protocol, "agentplane-attestation:v1");
+  assert.equal(
+    receipt.anchorSubject.message,
+    `agentplane-attestation:v1:${attestation.integrity.attestationDigest}`,
+  );
+  assert.match(receipt.anchorSubject.calldata, /^0x[0-9a-f]+$/);
+  assert.equal(receipt.submission.status, "not-submitted");
+});
+
 test("CLI extract command writes a runtime snapshot for a real task", () => {
   const outputPath = "artifacts/test-extracted-runtime.json";
   execFileSync(
@@ -223,4 +247,51 @@ test("CLI extract command writes a runtime snapshot for a real task", () => {
   const snapshot = loadJson(`../${outputPath}`);
   assert.equal(snapshot.task.id, "202603131024-THDVQ1");
   assert.equal(snapshot.runtime, "agentplane");
+});
+
+test("CLI anchor command writes a prepared anchor receipt without signer secrets", () => {
+  const attestationPath = "artifacts/test-anchor-attestation.json";
+  const anchorPath = "artifacts/test-anchor.json";
+
+  execFileSync(
+    "node",
+    [
+      "src/cli.mjs",
+      "generate",
+      "--input",
+      "examples/passing-bundle.json",
+      "--output",
+      attestationPath,
+    ],
+    {
+      encoding: "utf8",
+    },
+  );
+
+  execFileSync(
+    "node",
+    [
+      "src/cli.mjs",
+      "anchor",
+      "--input",
+      attestationPath,
+      "--output",
+      anchorPath,
+    ],
+    {
+      encoding: "utf8",
+    },
+  );
+
+  const attestation = loadJson(`../${attestationPath}`);
+  const anchorReceipt = loadJson(`../${anchorPath}`);
+  const validation = validateAttestationAnchorReceipt(
+    attestation,
+    anchorReceipt,
+  );
+
+  assert.equal(validation.valid, true);
+  assert.equal(anchorReceipt.submission.mode, "prepared");
+  assert.equal(anchorReceipt.submission.status, "not-submitted");
+  assert.equal(anchorReceipt.submission.txHash, null);
 });

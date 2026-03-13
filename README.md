@@ -22,6 +22,7 @@ The current MVP is intentionally narrow:
 - accept runtime-native snapshots through adapters and convert them into canonical bundles
 - extract a real completed `agentplane` task into a runtime snapshot before adaptation
 - generate a signed-style attestation object with stable hashes
+- derive a deterministic attestation-specific Base anchor payload from the attestation digest
 - verify the attestation against explicit trust policy rules
 - render a static HTML report for demo use
 - show a negative path where trust is rejected
@@ -31,7 +32,7 @@ Out of scope for this iteration:
 - production deployment
 - wallet UX
 - multi-agent networking
-- live on-chain writes beyond the existing hackathon registration anchor
+- contract deployment or custom on-chain protocol design
 
 ## Commands
 
@@ -55,6 +56,12 @@ Generate only the passing attestation:
 
 ```bash
 npm run attest:pass
+```
+
+Prepare a passing Base anchor receipt from the attestation digest:
+
+```bash
+npm run anchor:pass
 ```
 
 Adapt a passing `agentplane` runtime snapshot into a canonical bundle:
@@ -87,6 +94,21 @@ Render the passing demo page:
 npm run report:pass
 ```
 
+Render the passing demo page with its attestation-specific Base anchor receipt:
+
+```bash
+node src/cli.mjs render --input artifacts/passing-attestation.json --anchor artifacts/passing-anchor.json --output artifacts/passing-report.html
+```
+
+Generate a live Base transaction for an attestation digest:
+
+```bash
+BASE_PRIVATE_KEY=0x... node src/cli.mjs anchor --input artifacts/passing-attestation.json --output artifacts/passing-anchor.json --submit
+```
+
+If `BASE_RPC_URL` is unset, the command uses the default public Base RPC from `viem`.
+Only the attestation digest is intended for on-chain anchoring. The full attestation payload remains off-chain.
+
 ## Output
 
 Generated files land in `artifacts/`:
@@ -97,6 +119,7 @@ Generated files land in `artifacts/`:
 - `failing-bundle.json`
 - `passing-attestation.json`
 - `failing-attestation.json`
+- `passing-anchor.json`
 - `passing-report.html`
 - `failing-report.html`
 - `index.html`
@@ -104,10 +127,22 @@ Generated files land in `artifacts/`:
 
 ## Demo story
 
-1. Show a passing attestation with approved scope, execution evidence, verification checks, and a Base registration anchor.
-2. Show a failing attestation with missing approval and failed checks.
-3. Explain that the product value is not logging. It is policy-backed trust adjudication that can be consumed by humans, CI, and downstream agents.
-4. Explain that the same attestation core works through a built-in `agentplane` adapter today and through third-party adapters later.
+1. Show a passing attestation with approved scope, execution evidence, verification checks, and a prepared or confirmed Base digest anchor.
+2. Show the existing Base registration anchor as separate provenance, not as a substitute for attestation anchoring.
+3. Show a failing attestation with missing approval and failed checks.
+4. Explain that the product value is not logging. It is policy-backed trust adjudication that can be consumed by humans, CI, and downstream agents.
+5. Explain that the same attestation core works through a built-in `agentplane` adapter today and through third-party adapters later.
+
+## Base Anchor Model
+
+The on-chain unit is deliberately narrow:
+
+- the attestation digest is the anchor subject
+- the transaction calldata is a deterministic `agentplane-attestation:v1:<digest>` message
+- the anchor receipt is stored as a sidecar artifact, not merged back into the attestation core
+- the report can render both the attestation and its anchor receipt together
+
+This keeps the attestation immutable while still linking it to a public Base transaction when signer credentials are available.
 
 ## Canonical Input Format
 

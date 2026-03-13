@@ -3,6 +3,10 @@ import { dirname, resolve } from "node:path";
 import { getRuntimeAdapter, listRuntimeAdapters } from "./adapters/index.mjs";
 import { resolveAgentplaneProfile } from "./lib/agentplane-profile.mjs";
 import { extractAgentplaneTaskSnapshot } from "./lib/agentplane-task-extractor.mjs";
+import {
+  anchorAttestation,
+  validateAttestationAnchorReceipt,
+} from "./lib/anchor.mjs";
 import { createAttestation, verifyAttestation } from "./lib/attestation.mjs";
 import { ensureAvatarPng } from "./lib/avatar.mjs";
 import { canonicalStringify } from "./lib/canonical-json.mjs";
@@ -65,8 +69,9 @@ function usage() {
       "  node src/cli.mjs adapt --adapter <id> --input <runtime-snapshot.json> --output <bundle.json>",
       "  node src/cli.mjs adapt --adapter agentplane --task-id <id> --output <bundle.json> [--profile <profile.json>]",
       "  node src/cli.mjs generate --input <artifact-bundle.json> --output <attestation.json>",
+      "  node src/cli.mjs anchor --input <attestation.json> --output <anchor.json> [--submit] [--rpc-url <url>]",
       "  node src/cli.mjs verify --input <attestation.json> [--expect trusted|caution|reject]",
-      "  node src/cli.mjs render --input <attestation.json> --output <report.html>",
+      "  node src/cli.mjs render --input <attestation.json> --output <report.html> [--anchor <anchor.json>]",
       "  node src/cli.mjs demo [--output-dir artifacts]",
       "",
       `Available adapters: ${listRuntimeAdapters()
@@ -160,6 +165,36 @@ function runGenerate(options) {
   });
 }
 
+async function runAnchor(options) {
+  if (!options.input || !options.output) {
+    throw new Error("anchor requires --input and --output");
+  }
+
+  const attestation = readJson(options.input);
+  const receipt = await anchorAttestation(attestation, {
+    submit: Boolean(options.submit),
+    rpcUrl: options["rpc-url"] ?? process.env.BASE_RPC_URL,
+  });
+  writeJson(options.output, receipt);
+
+  printSummary({
+    command: "anchor",
+    input: options.input,
+    output: options.output,
+    attestationId: receipt.attestationId,
+    digest: receipt.attestationDigest,
+    mode: receipt.submission.mode,
+    status: receipt.submission.status,
+    txHash: receipt.submission.txHash,
+    txUrl: receipt.submission.txUrl,
+    error: receipt.submission.error,
+  });
+
+  if (options.submit && receipt.submission.status !== "confirmed") {
+    process.exitCode = 1;
+  }
+}
+
 function runVerify(options) {
   if (!options.input) {
     throw new Error("verify requires --input");
@@ -193,11 +228,24 @@ function runRender(options) {
 
   const attestation = readJson(options.input);
   const verification = verifyAttestation(attestation);
+  const anchorReceipt = options.anchor ? readJson(options.anchor) : null;
+  const anchorValidation =
+    anchorReceipt !== null
+      ? validateAttestationAnchorReceipt(attestation, anchorReceipt)
+      : { valid: true, errors: [] };
+
+  if (!anchorValidation.valid) {
+    throw new Error(
+      `Anchor receipt does not match the attestation:\n- ${anchorValidation.errors.join("\n- ")}`,
+    );
+  }
+
   const outputPath = resolve(options.output);
   const avatarPath = ensureAvatarPng(dirname(outputPath));
   const html = renderAttestationReport({
     attestation,
     verification,
+    anchorReceipt,
     avatarFileName: avatarPath.split("/").at(-1),
   });
 
@@ -208,11 +256,12 @@ function runRender(options) {
     input: options.input,
     output: options.output,
     verdict: verification.verdict,
+    anchor: options.anchor ?? null,
     avatar: avatarPath,
   });
 }
 
-function runDemo(options) {
+async function runDemo(options) {
   const outputDir = resolve(options["output-dir"] ?? "artifacts");
   mkdirSync(outputDir, { recursive: true });
   const adapter = getRuntimeAdapter("agentplane");
@@ -239,6 +288,9 @@ function runDemo(options) {
 
   const passingVerification = verifyAttestation(passingAttestation);
   const failingVerification = verifyAttestation(failingAttestation);
+  const passingAnchor = await anchorAttestation(passingAttestation);
+  const passingAnchorPath = resolve(outputDir, "passing-anchor.json");
+  writeJson(passingAnchorPath, passingAnchor);
 
   const avatarPath = ensureAvatarPng(outputDir);
   writeText(
@@ -246,6 +298,7 @@ function runDemo(options) {
     renderAttestationReport({
       attestation: passingAttestation,
       verification: passingVerification,
+      anchorReceipt: passingAnchor,
       avatarFileName: avatarPath.split("/").at(-1),
     }),
   );
@@ -264,6 +317,7 @@ function runDemo(options) {
       failing: failingAttestation,
       passingVerification,
       failingVerification,
+      passingAnchor,
     }),
   );
 
@@ -274,6 +328,7 @@ function runDemo(options) {
       verdict: passingVerification.verdict,
       score: passingVerification.score,
       bundleId: passingAttestation.inputSurface.bundleId,
+      anchorMode: passingAnchor.submission.mode,
     },
     failing: {
       verdict: failingVerification.verdict,
@@ -285,6 +340,7 @@ function runDemo(options) {
       resolve(outputDir, "failing-bundle.json"),
       passingAttestationPath,
       failingAttestationPath,
+      passingAnchorPath,
       resolve(outputDir, "passing-report.html"),
       resolve(outputDir, "failing-report.html"),
       resolve(outputDir, "index.html"),
@@ -293,7 +349,7 @@ function runDemo(options) {
   });
 }
 
-function main() {
+async function main() {
   const [command, ...rest] = process.argv.slice(2);
   const options = parseArgs(rest);
 
@@ -307,6 +363,9 @@ function main() {
     case "adapt":
       runAdapt(options);
       return;
+    case "anchor":
+      await runAnchor(options);
+      return;
     case "verify":
       runVerify(options);
       return;
@@ -314,7 +373,7 @@ function main() {
       runRender(options);
       return;
     case "demo":
-      runDemo(options);
+      await runDemo(options);
       return;
     default:
       usage();
@@ -323,7 +382,7 @@ function main() {
 }
 
 try {
-  main();
+  await main();
 } catch (error) {
   process.stderr.write(
     `${error instanceof Error ? error.message : String(error)}\n`,

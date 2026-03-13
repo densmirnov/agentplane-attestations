@@ -11,11 +11,15 @@
     "adapt:agentplane:task": "node src/cli.mjs adapt --adapter agentplane --task-id 202603131024-THDVQ1 --output artifacts/extracted-bundle.json",
     "attest:pass": "node src/cli.mjs generate --input examples/passing-bundle.json --output artifacts/passing-attestation.json",
     "attest:fail": "node src/cli.mjs generate --input examples/failing-bundle.json --output artifacts/failing-attestation.json",
+    "anchor:pass": "node src/cli.mjs anchor --input artifacts/passing-attestation.json --output artifacts/passing-anchor.json",
     "verify:pass": "node src/cli.mjs verify --input artifacts/passing-attestation.json --expect trusted",
     "verify:fail": "node src/cli.mjs verify --input artifacts/failing-attestation.json --expect reject",
     "report:pass": "node src/cli.mjs render --input artifacts/passing-attestation.json --output artifacts/passing-report.html",
     "report:fail": "node src/cli.mjs render --input artifacts/failing-attestation.json --output artifacts/failing-report.html",
     "demo": "node src/cli.mjs demo",
     "test": "node --test"
+  },
+  "dependencies": {
+    "viem": "^2.47.2"
   }
 }
