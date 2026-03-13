@@ -46,25 +46,28 @@ Run the full demo:
 npm run demo
 ```
 
+By default the trusted demo path is generated from the real completed `agentplane` task `202603131341-YNE1V9`.
+The rejected path stays a controlled negative fixture so the product can demonstrate both acceptance and refusal.
+
 Run tests:
 
 ```bash
 npm test
 ```
 
-Generate only the passing attestation:
+Generate only the fixture-based passing attestation:
 
 ```bash
 npm run attest:pass
 ```
 
-Prepare a passing Base anchor receipt from the attestation digest:
+Prepare a fixture-based Base anchor receipt from the attestation digest:
 
 ```bash
 npm run anchor:pass
 ```
 
-Adapt a passing `agentplane` runtime snapshot into a canonical bundle:
+Adapt a passing fixture `agentplane` runtime snapshot into a canonical bundle:
 
 ```bash
 npm run adapt:agentplane:pass
@@ -82,28 +85,28 @@ Adapt a real completed `agentplane` task directly into a canonical bundle:
 npm run adapt:agentplane:task
 ```
 
-Verify only the passing attestation:
+Verify only the fixture-based passing attestation:
 
 ```bash
 npm run verify:pass
 ```
 
-Render the passing demo page:
+Render the fixture-based passing report:
 
 ```bash
 npm run report:pass
 ```
 
-Render the passing demo page with its attestation-specific Base anchor receipt:
+Render the trusted demo report with its attestation-specific Base anchor receipt:
 
 ```bash
-node src/cli.mjs render --input artifacts/passing-attestation.json --anchor artifacts/passing-anchor.json --output artifacts/passing-report.html
+node src/cli.mjs render --input artifacts/trusted-attestation.json --anchor artifacts/trusted-anchor.json --output artifacts/trusted-report.html
 ```
 
 Generate a live Base transaction for an attestation digest:
 
 ```bash
-BASE_PRIVATE_KEY=0x... node src/cli.mjs anchor --input artifacts/passing-attestation.json --output artifacts/passing-anchor.json --submit
+BASE_PRIVATE_KEY=0x... node src/cli.mjs anchor --input artifacts/trusted-attestation.json --output artifacts/trusted-anchor.json --submit
 ```
 
 If `BASE_RPC_URL` is unset, the command uses the default public Base RPC from `viem`.
@@ -113,25 +116,27 @@ Only the attestation digest is intended for on-chain anchoring. The full attesta
 
 Generated files land in `artifacts/`:
 
-- `extracted-runtime.json`
-- `extracted-bundle.json`
-- `passing-bundle.json`
-- `failing-bundle.json`
-- `passing-attestation.json`
-- `failing-attestation.json`
-- `passing-anchor.json`
-- `passing-report.html`
-- `failing-report.html`
+- `trusted-runtime.json`
+- `trusted-bundle.json`
+- `rejected-bundle.json`
+- `trusted-attestation.json`
+- `rejected-attestation.json`
+- `trusted-anchor.json`
+- `trusted-report.html`
+- `rejected-report.html`
 - `index.html`
 - `agentplane-avatar.png`
 
 ## Demo story
 
-1. Show a passing attestation with approved scope, execution evidence, verification checks, and a prepared or confirmed Base digest anchor.
-2. Show the existing Base registration anchor as separate provenance, not as a substitute for attestation anchoring.
-3. Show a failing attestation with missing approval and failed checks.
-4. Explain that the product value is not logging. It is policy-backed trust adjudication that can be consumed by humans, CI, and downstream agents.
-5. Explain that the same attestation core works through a built-in `agentplane` adapter today and through third-party adapters later.
+1. Open `artifacts/index.html`.
+2. Show the trusted path generated from a real completed `agentplane` task with approved scope, execution evidence, verification checks, and a prepared or confirmed Base digest anchor.
+3. Show the existing Base registration anchor as separate provenance, not as a substitute for attestation anchoring.
+4. Show the rejected path with missing approval and failed checks.
+5. Explain that the product value is not logging. It is policy-backed trust adjudication that can be consumed by humans, CI, and downstream agents.
+6. Explain that the same attestation core works through a built-in `agentplane` adapter today and through third-party adapters later.
+
+A concise walkthrough is available in [docs/demo-script.md](/Users/densmirnov/Desktop/synthesis-hackathon/docs/demo-script.md).
 
 ## Base Anchor Model
 

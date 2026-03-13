@@ -295,3 +295,26 @@ test("CLI anchor command writes a prepared anchor receipt without signer secrets
   assert.equal(anchorReceipt.submission.status, "not-submitted");
   assert.equal(anchorReceipt.submission.txHash, null);
 });
+
+test("CLI demo command builds a judge-facing demo from a real completed task", () => {
+  const outputDir = "artifacts/test-demo";
+
+  execFileSync("node", ["src/cli.mjs", "demo", "--output-dir", outputDir], {
+    encoding: "utf8",
+  });
+
+  const trustedRuntime = loadJson(`../${outputDir}/trusted-runtime.json`);
+  const trustedBundle = loadJson(`../${outputDir}/trusted-bundle.json`);
+  const trustedAnchor = loadJson(`../${outputDir}/trusted-anchor.json`);
+  const indexHtml = readFileSync(
+    new URL(`../${outputDir}/index.html`, import.meta.url),
+    "utf8",
+  );
+
+  assert.equal(trustedRuntime.task.id, "202603131341-YNE1V9");
+  assert.equal(trustedBundle.context.task.id, "202603131341-YNE1V9");
+  assert.equal(trustedAnchor.submission.status, "not-submitted");
+  assert.match(indexHtml, /Trusted path source task/);
+  assert.match(indexHtml, /trusted-report\.html/);
+  assert.match(indexHtml, /rejected-report\.html/);
+});

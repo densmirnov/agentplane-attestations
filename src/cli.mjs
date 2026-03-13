@@ -13,6 +13,8 @@ import { canonicalStringify } from "./lib/canonical-json.mjs";
 import { buildDemoIndex, renderAttestationReport } from "./lib/report.mjs";
 import { adaptRuntimeSnapshot } from "./lib/runtime-adapter.mjs";
 
+const DEFAULT_DEMO_TRUSTED_TASK_ID = "202603131341-YNE1V9";
+
 function parseArgs(argv) {
   const options = {};
   for (let index = 0; index < argv.length; index += 1) {
@@ -72,7 +74,7 @@ function usage() {
       "  node src/cli.mjs anchor --input <attestation.json> --output <anchor.json> [--submit] [--rpc-url <url>]",
       "  node src/cli.mjs verify --input <attestation.json> [--expect trusted|caution|reject]",
       "  node src/cli.mjs render --input <attestation.json> --output <report.html> [--anchor <anchor.json>]",
-      "  node src/cli.mjs demo [--output-dir artifacts]",
+      `  node src/cli.mjs demo [--task-id ${DEFAULT_DEMO_TRUSTED_TASK_ID}] [--output-dir artifacts]`,
       "",
       `Available adapters: ${listRuntimeAdapters()
         .map((adapter) => adapter.adapterId)
@@ -265,84 +267,99 @@ async function runDemo(options) {
   const outputDir = resolve(options["output-dir"] ?? "artifacts");
   mkdirSync(outputDir, { recursive: true });
   const adapter = getRuntimeAdapter("agentplane");
-
-  const passingBundle = adaptRuntimeSnapshot({
-    adapter,
-    snapshot: readJson("examples/agentplane-runtime-passing.json"),
+  const trustedTaskId = options["task-id"] ?? DEFAULT_DEMO_TRUSTED_TASK_ID;
+  const trustedSnapshot = extractAgentplaneTaskSnapshot({
+    taskId: trustedTaskId,
+    profile: loadProfile(options),
   });
-  const failingBundle = adaptRuntimeSnapshot({
+
+  const trustedBundle = adaptRuntimeSnapshot({
+    adapter,
+    snapshot: trustedSnapshot,
+  });
+  const rejectedBundle = adaptRuntimeSnapshot({
     adapter,
     snapshot: readJson("examples/agentplane-runtime-failing.json"),
   });
 
-  writeJson(resolve(outputDir, "passing-bundle.json"), passingBundle);
-  writeJson(resolve(outputDir, "failing-bundle.json"), failingBundle);
+  const trustedRuntimePath = resolve(outputDir, "trusted-runtime.json");
+  const trustedBundlePath = resolve(outputDir, "trusted-bundle.json");
+  const rejectedBundlePath = resolve(outputDir, "rejected-bundle.json");
+  writeJson(trustedRuntimePath, trustedSnapshot);
+  writeJson(trustedBundlePath, trustedBundle);
+  writeJson(rejectedBundlePath, rejectedBundle);
 
-  const passingAttestation = createAttestation(passingBundle);
-  const failingAttestation = createAttestation(failingBundle);
+  const trustedAttestation = createAttestation(trustedBundle);
+  const rejectedAttestation = createAttestation(rejectedBundle);
 
-  const passingAttestationPath = resolve(outputDir, "passing-attestation.json");
-  const failingAttestationPath = resolve(outputDir, "failing-attestation.json");
-  writeJson(passingAttestationPath, passingAttestation);
-  writeJson(failingAttestationPath, failingAttestation);
+  const trustedAttestationPath = resolve(outputDir, "trusted-attestation.json");
+  const rejectedAttestationPath = resolve(
+    outputDir,
+    "rejected-attestation.json",
+  );
+  writeJson(trustedAttestationPath, trustedAttestation);
+  writeJson(rejectedAttestationPath, rejectedAttestation);
 
-  const passingVerification = verifyAttestation(passingAttestation);
-  const failingVerification = verifyAttestation(failingAttestation);
-  const passingAnchor = await anchorAttestation(passingAttestation);
-  const passingAnchorPath = resolve(outputDir, "passing-anchor.json");
-  writeJson(passingAnchorPath, passingAnchor);
+  const trustedVerification = verifyAttestation(trustedAttestation);
+  const rejectedVerification = verifyAttestation(rejectedAttestation);
+  const trustedAnchor = await anchorAttestation(trustedAttestation);
+  const trustedAnchorPath = resolve(outputDir, "trusted-anchor.json");
+  writeJson(trustedAnchorPath, trustedAnchor);
 
   const avatarPath = ensureAvatarPng(outputDir);
   writeText(
-    resolve(outputDir, "passing-report.html"),
+    resolve(outputDir, "trusted-report.html"),
     renderAttestationReport({
-      attestation: passingAttestation,
-      verification: passingVerification,
-      anchorReceipt: passingAnchor,
+      attestation: trustedAttestation,
+      verification: trustedVerification,
+      anchorReceipt: trustedAnchor,
       avatarFileName: avatarPath.split("/").at(-1),
     }),
   );
   writeText(
-    resolve(outputDir, "failing-report.html"),
+    resolve(outputDir, "rejected-report.html"),
     renderAttestationReport({
-      attestation: failingAttestation,
-      verification: failingVerification,
+      attestation: rejectedAttestation,
+      verification: rejectedVerification,
       avatarFileName: avatarPath.split("/").at(-1),
     }),
   );
   writeText(
     resolve(outputDir, "index.html"),
     buildDemoIndex({
-      passing: passingAttestation,
-      failing: failingAttestation,
-      passingVerification,
-      failingVerification,
-      passingAnchor,
+      trusted: trustedAttestation,
+      rejected: rejectedAttestation,
+      trustedVerification,
+      rejectedVerification,
+      trustedAnchor,
+      trustedTaskId,
     }),
   );
 
   printSummary({
     command: "demo",
     outputDir,
-    passing: {
-      verdict: passingVerification.verdict,
-      score: passingVerification.score,
-      bundleId: passingAttestation.inputSurface.bundleId,
-      anchorMode: passingAnchor.submission.mode,
+    trustedTaskId,
+    trusted: {
+      verdict: trustedVerification.verdict,
+      score: trustedVerification.score,
+      bundleId: trustedAttestation.inputSurface.bundleId,
+      anchorMode: trustedAnchor.submission.mode,
     },
-    failing: {
-      verdict: failingVerification.verdict,
-      score: failingVerification.score,
-      bundleId: failingAttestation.inputSurface.bundleId,
+    rejected: {
+      verdict: rejectedVerification.verdict,
+      score: rejectedVerification.score,
+      bundleId: rejectedAttestation.inputSurface.bundleId,
     },
     files: [
-      resolve(outputDir, "passing-bundle.json"),
-      resolve(outputDir, "failing-bundle.json"),
-      passingAttestationPath,
-      failingAttestationPath,
-      passingAnchorPath,
-      resolve(outputDir, "passing-report.html"),
-      resolve(outputDir, "failing-report.html"),
+      trustedRuntimePath,
+      trustedBundlePath,
+      rejectedBundlePath,
+      trustedAttestationPath,
+      rejectedAttestationPath,
+      trustedAnchorPath,
+      resolve(outputDir, "trusted-report.html"),
+      resolve(outputDir, "rejected-report.html"),
       resolve(outputDir, "index.html"),
       avatarPath,
     ],
