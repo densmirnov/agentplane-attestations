@@ -1,7 +1,8 @@
 ---
 id: "202603131533-WHKJPT"
 title: "Add universal runtime interoperability profile and openclaw reference adapter"
-status: "DOING"
+result_summary: "OpenClaw-style snapshots now adapt into canonical bundles and trusted or rejected attestations without relying on agentplane internals."
+status: "DONE"
 priority: "med"
 owner: "CODER"
 depends_on: []
@@ -14,15 +15,20 @@ plan_approval:
   updated_by: "ORCHESTRATOR"
   note: null
 verification:
-  state: "pending"
-  updated_at: null
-  updated_by: null
-  note: null
-commit: null
+  state: "ok"
+  updated_at: "2026-03-13T15:43:12.580Z"
+  updated_by: "CODER"
+  note: "Verified: the new openclaw reference adapter emits canonical bundles, passes the same attestation pipeline as agentplane, and all regression plus policy checks are green."
+commit:
+  hash: "9822f2afc8b9933423ebb841b08cdeb51c0f2839"
+  message: "✨ runtime: add openclaw interoperability reference adapter"
 comments:
   -
     author: "CODER"
     body: "Start: implement the stretch interoperability proof with a reference openclaw adapter, canonical fixtures, documentation, and regression coverage while keeping the scope local and runtime-agnostic."
+  -
+    author: "CODER"
+    body: "Verified: shipped the Epic 6 interoperability proof with a reference openclaw adapter, canonical fixtures, interoperability docs, and regression evidence recorded in the task README."
 events:
   -
     type: "status"
@@ -31,8 +37,21 @@ events:
     from: "TODO"
     to: "DOING"
     note: "Start: implement the stretch interoperability proof with a reference openclaw adapter, canonical fixtures, documentation, and regression coverage while keeping the scope local and runtime-agnostic."
+  -
+    type: "verify"
+    at: "2026-03-13T15:43:12.580Z"
+    author: "CODER"
+    state: "ok"
+    note: "Verified: the new openclaw reference adapter emits canonical bundles, passes the same attestation pipeline as agentplane, and all regression plus policy checks are green."
+  -
+    type: "status"
+    at: "2026-03-13T15:43:24.295Z"
+    author: "CODER"
+    from: "DOING"
+    to: "DONE"
+    note: "Verified: shipped the Epic 6 interoperability proof with a reference openclaw adapter, canonical fixtures, interoperability docs, and regression evidence recorded in the task README."
 doc_version: 3
-doc_updated_at: "2026-03-13T15:34:51.257Z"
+doc_updated_at: "2026-03-13T15:43:24.295Z"
 doc_updated_by: "CODER"
 description: "Implement Epic 6 stretch scope with an interoperability profile, openclaw reference adapter, example snapshots, and regression coverage without introducing external runtime dependencies."
 id_source: "generated"
@@ -81,6 +100,15 @@ Implement Epic 6 stretch scope with an interoperability profile, openclaw refere
 - `node .agentplane/policy/check-routing.mjs`
   - Result: pass
   - Evidence: `policy routing OK`
+
+#### 2026-03-13T15:43:12.580Z — VERIFY — ok
+
+By: CODER
+
+Note: Verified: the new openclaw reference adapter emits canonical bundles, passes the same attestation pipeline as agentplane, and all regression plus policy checks are green.
+
+VerifyStepsRef: doc_version=3, doc_updated_at=2026-03-13T15:34:51.257Z, excerpt_hash=sha256:17ff70660d91ac9ed065b262d2dd04136630a326832ff138ada8a1479ce2f10c
+
 <!-- END VERIFICATION RESULTS -->
 
 ## Rollback Plan
