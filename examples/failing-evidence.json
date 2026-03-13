@@ -1,0 +1,59 @@
+{
+  "meta": {
+    "agentName": "agentplane",
+    "harness": "codex-cli",
+    "model": "gpt-5",
+    "maintainer": "Denis Smirnov"
+  },
+  "project": {
+    "name": "agentplane Attestations",
+    "theme": "Agents that trust",
+    "problem": "Humans and downstream agents need a portable way to decide whether agent output is trustworthy."
+  },
+  "task": {
+    "id": "demo-negative-path",
+    "title": "Attempt attestation without trust prerequisites",
+    "approved": false,
+    "approvedBy": null,
+    "approvedAt": null,
+    "summary": "Show that missing approval and failed checks downgrade trust."
+  },
+  "execution": {
+    "repo": "synthesis-hackathon",
+    "branch": "main",
+    "commit": null,
+    "filesChanged": [],
+    "diffStat": {
+      "added": 0,
+      "deleted": 0
+    }
+  },
+  "verification": {
+    "conversationLogAttached": false,
+    "checks": [
+      {
+        "name": "Generate failing attestation",
+        "required": true,
+        "status": "fail"
+      },
+      {
+        "name": "Verify failing attestation",
+        "required": true,
+        "status": "fail"
+      }
+    ]
+  },
+  "approvals": {
+    "human": {
+      "status": "missing",
+      "actor": null
+    }
+  },
+  "anchors": {
+    "registration": null
+  },
+  "notes": [
+    "This sample represents the negative path.",
+    "The attestation should be structurally valid but policy-rejected."
+  ]
+}

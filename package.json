@@ -1,0 +1,17 @@
+{
+  "name": "agentplane-attestations",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Hackathon MVP for generating and verifying agent work attestations.",
+  "scripts": {
+    "attest:pass": "node src/cli.mjs generate --input examples/passing-evidence.json --output artifacts/passing-attestation.json",
+    "attest:fail": "node src/cli.mjs generate --input examples/failing-evidence.json --output artifacts/failing-attestation.json",
+    "verify:pass": "node src/cli.mjs verify --input artifacts/passing-attestation.json --expect trusted",
+    "verify:fail": "node src/cli.mjs verify --input artifacts/failing-attestation.json --expect reject",
+    "report:pass": "node src/cli.mjs render --input artifacts/passing-attestation.json --output artifacts/passing-report.html",
+    "report:fail": "node src/cli.mjs render --input artifacts/failing-attestation.json --output artifacts/failing-report.html",
+    "demo": "node src/cli.mjs demo",
+    "test": "node --test"
+  }
+}

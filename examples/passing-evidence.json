@@ -1,0 +1,76 @@
+{
+  "meta": {
+    "agentName": "agentplane",
+    "harness": "codex-cli",
+    "model": "gpt-5",
+    "maintainer": "Denis Smirnov"
+  },
+  "project": {
+    "name": "agentplane Attestations",
+    "theme": "Agents that trust",
+    "problem": "Humans and downstream agents need a portable way to decide whether agent output is trustworthy."
+  },
+  "task": {
+    "id": "202603130958-JRS5E8",
+    "title": "Build agentplane Attestations MVP",
+    "approved": true,
+    "approvedBy": "Denis Smirnov",
+    "approvedAt": "2026-03-13T10:01:00.000Z",
+    "summary": "Generate a portable attestation, verify it under explicit policy, and render a demo report."
+  },
+  "execution": {
+    "repo": "synthesis-hackathon",
+    "branch": "main",
+    "commit": "demo-local-passing",
+    "filesChanged": [
+      "README.md",
+      "package.json",
+      "src/cli.mjs",
+      "src/lib/attestation.mjs",
+      "src/lib/policy.mjs",
+      "src/lib/report.mjs",
+      "tests/attestation.test.mjs"
+    ],
+    "diffStat": {
+      "added": 640,
+      "deleted": 0
+    }
+  },
+  "verification": {
+    "conversationLogAttached": true,
+    "checks": [
+      {
+        "name": "Generate passing attestation",
+        "required": true,
+        "status": "pass"
+      },
+      {
+        "name": "Verify passing attestation",
+        "required": true,
+        "status": "pass"
+      },
+      {
+        "name": "Render passing report",
+        "required": false,
+        "status": "pass"
+      }
+    ]
+  },
+  "approvals": {
+    "human": {
+      "status": "approved",
+      "actor": "Denis Smirnov"
+    }
+  },
+  "anchors": {
+    "registration": {
+      "kind": "hackathon-registration",
+      "chain": "Base",
+      "txUrl": "https://basescan.org/tx/0x2f06bc4d286d50e20aa55e4fc6bdb762c20cf219298be55aa688955c53e4230e"
+    }
+  },
+  "notes": [
+    "This sample represents the green path for the hackathon demo.",
+    "Future iterations can replace the registration anchor with attestation-specific on-chain writes."
+  ]
+}

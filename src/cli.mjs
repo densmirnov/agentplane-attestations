@@ -1,0 +1,226 @@
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { createAttestation, verifyAttestation } from './lib/attestation.mjs';
+import { ensureAvatarPng } from './lib/avatar.mjs';
+import { canonicalStringify } from './lib/canonical-json.mjs';
+import { buildDemoIndex, renderAttestationReport } from './lib/report.mjs';
+
+function parseArgs(argv) {
+  const options = {};
+  for (let index = 0; index < argv.length; index += 1) {
+    const token = argv[index];
+    if (!token.startsWith('--')) {
+      continue;
+    }
+
+    const key = token.slice(2);
+    const next = argv[index + 1];
+    if (!next || next.startsWith('--')) {
+      options[key] = true;
+      continue;
+    }
+
+    options[key] = next;
+    index += 1;
+  }
+
+  return options;
+}
+
+function readJson(filePath) {
+  return JSON.parse(readFileSync(resolve(filePath), 'utf8'));
+}
+
+function writeJson(filePath, value) {
+  mkdirSync(dirname(resolve(filePath)), { recursive: true });
+  writeFileSync(resolve(filePath), `${canonicalStringify(value)}\n`);
+}
+
+function writeText(filePath, value) {
+  mkdirSync(dirname(resolve(filePath)), { recursive: true });
+  writeFileSync(resolve(filePath), value);
+}
+
+function printSummary(summary) {
+  process.stdout.write(`${JSON.stringify(summary, null, 2)}\n`);
+}
+
+function usage() {
+  process.stderr.write(
+    [
+      'Usage:',
+      '  node src/cli.mjs generate --input <evidence.json> --output <attestation.json>',
+      '  node src/cli.mjs verify --input <attestation.json> [--expect trusted|caution|reject]',
+      '  node src/cli.mjs render --input <attestation.json> --output <report.html>',
+      '  node src/cli.mjs demo [--output-dir artifacts]'
+    ].join('\n')
+  );
+  process.stderr.write('\n');
+}
+
+function runGenerate(options) {
+  if (!options.input || !options.output) {
+    throw new Error('generate requires --input and --output');
+  }
+
+  const evidence = readJson(options.input);
+  const attestation = createAttestation(evidence);
+  writeJson(options.output, attestation);
+
+  printSummary({
+    command: 'generate',
+    output: options.output,
+    attestationId: attestation.attestationId,
+    verdict: attestation.trust.verdict,
+    score: attestation.trust.score
+  });
+}
+
+function runVerify(options) {
+  if (!options.input) {
+    throw new Error('verify requires --input');
+  }
+
+  const expectedVerdict = options.expect ?? 'trusted';
+  const attestation = readJson(options.input);
+  const result = verifyAttestation(attestation);
+
+  printSummary({
+    command: 'verify',
+    input: options.input,
+    expectedVerdict,
+    actualVerdict: result.verdict,
+    score: result.score,
+    integrityValid: result.integrityValid,
+    policySatisfied: result.policySatisfied,
+    errors: result.errors,
+    warnings: result.warnings
+  });
+
+  if (result.verdict !== expectedVerdict || !result.integrityValid) {
+    process.exitCode = 1;
+  }
+}
+
+function runRender(options) {
+  if (!options.input || !options.output) {
+    throw new Error('render requires --input and --output');
+  }
+
+  const attestation = readJson(options.input);
+  const verification = verifyAttestation(attestation);
+  const outputPath = resolve(options.output);
+  const avatarPath = ensureAvatarPng(dirname(outputPath));
+  const html = renderAttestationReport({
+    attestation,
+    verification,
+    avatarFileName: avatarPath.split('/').at(-1)
+  });
+
+  writeText(outputPath, html);
+
+  printSummary({
+    command: 'render',
+    input: options.input,
+    output: options.output,
+    verdict: verification.verdict,
+    avatar: avatarPath
+  });
+}
+
+function runDemo(options) {
+  const outputDir = resolve(options['output-dir'] ?? 'artifacts');
+  mkdirSync(outputDir, { recursive: true });
+
+  const passingEvidence = readJson('examples/passing-evidence.json');
+  const failingEvidence = readJson('examples/failing-evidence.json');
+
+  const passingAttestation = createAttestation(passingEvidence);
+  const failingAttestation = createAttestation(failingEvidence);
+
+  const passingAttestationPath = resolve(outputDir, 'passing-attestation.json');
+  const failingAttestationPath = resolve(outputDir, 'failing-attestation.json');
+  writeJson(passingAttestationPath, passingAttestation);
+  writeJson(failingAttestationPath, failingAttestation);
+
+  const passingVerification = verifyAttestation(passingAttestation);
+  const failingVerification = verifyAttestation(failingAttestation);
+
+  const avatarPath = ensureAvatarPng(outputDir);
+  writeText(
+    resolve(outputDir, 'passing-report.html'),
+    renderAttestationReport({
+      attestation: passingAttestation,
+      verification: passingVerification,
+      avatarFileName: avatarPath.split('/').at(-1)
+    })
+  );
+  writeText(
+    resolve(outputDir, 'failing-report.html'),
+    renderAttestationReport({
+      attestation: failingAttestation,
+      verification: failingVerification,
+      avatarFileName: avatarPath.split('/').at(-1)
+    })
+  );
+  writeText(
+    resolve(outputDir, 'index.html'),
+    buildDemoIndex({
+      passing: passingAttestation,
+      failing: failingAttestation,
+      passingVerification,
+      failingVerification
+    })
+  );
+
+  printSummary({
+    command: 'demo',
+    outputDir,
+    passing: {
+      verdict: passingVerification.verdict,
+      score: passingVerification.score
+    },
+    failing: {
+      verdict: failingVerification.verdict,
+      score: failingVerification.score
+    },
+    files: [
+      passingAttestationPath,
+      failingAttestationPath,
+      resolve(outputDir, 'passing-report.html'),
+      resolve(outputDir, 'failing-report.html'),
+      resolve(outputDir, 'index.html'),
+      avatarPath
+    ]
+  });
+}
+
+function main() {
+  const [command, ...rest] = process.argv.slice(2);
+  const options = parseArgs(rest);
+
+  switch (command) {
+    case 'generate':
+      runGenerate(options);
+      return;
+    case 'verify':
+      runVerify(options);
+      return;
+    case 'render':
+      runRender(options);
+      return;
+    case 'demo':
+      runDemo(options);
+      return;
+    default:
+      usage();
+      process.exitCode = 1;
+  }
+}
+
+try {
+  main();
+} catch (error) {
+  process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+  process.exitCode = 1;
+}

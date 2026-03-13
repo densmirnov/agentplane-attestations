@@ -1,6 +1,7 @@
 
 # agentplane: ignore runtime/transient workspace artifacts
 .env
+artifacts
 .agentplane/worktrees
 .agentplane/cache
 .agentplane/recipes-cache
